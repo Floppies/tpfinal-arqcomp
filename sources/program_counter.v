@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module program_counter#(
+module program_counter  #(
     parameter       MSB     =   32
 )
 (
