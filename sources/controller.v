@@ -128,7 +128,7 @@ module controller   #(
                 Data_to_Reg     =   2'b01       ;
                 Mem_read        =   1           ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b00001    ;
+                Size_control    =   5'b01100    ;
             end
             `Lbu        :   begin
                 Reg_write       =   1           ;
@@ -137,7 +137,7 @@ module controller   #(
                 Data_to_Reg     =   2'b01       ;
                 Mem_read        =   1           ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b00101    ;
+                Size_control    =   5'b01000    ;
             end
             `Lh         :   begin
                 Reg_write       =   1           ;
@@ -146,7 +146,7 @@ module controller   #(
                 Data_to_Reg     =   2'b01       ;
                 Mem_read        =   1           ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b00010    ;
+                Size_control    =   5'b10100    ;
             end
             `Lhu        :   begin
                 Reg_write       =   1           ;
@@ -155,7 +155,7 @@ module controller   #(
                 Data_to_Reg     =   2'b01       ;
                 Mem_read        =   1           ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b00110    ;
+                Size_control    =   5'b10000    ;
             end
             `Lw         :   begin
                 Reg_write       =   1           ;
@@ -164,7 +164,7 @@ module controller   #(
                 Data_to_Reg     =   2'b01       ;
                 Mem_read        =   1           ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b00011    ;
+                Size_control    =   5'b11100    ;
             end
             `Lwu        :   begin
                 Reg_write       =   1           ;
@@ -173,7 +173,7 @@ module controller   #(
                 Data_to_Reg     =   2'b01       ;
                 Mem_read        =   1           ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b00111    ;
+                Size_control    =   5'b11000    ;
             end
             `Lui        :   begin
                 Reg_write       =   1           ;
@@ -194,7 +194,7 @@ module controller   #(
                 ALU_op          =   3'b001      ;
                 Data_to_Reg     =   2'b11       ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b01000    ;
+                Size_control    =   5'b00001    ;
             end
             `Sh         :   begin
                 ALU_source      =   1           ;
@@ -202,7 +202,7 @@ module controller   #(
                 ALU_op          =   3'b001      ;
                 Data_to_Reg     =   2'b11       ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b10000    ;
+                Size_control    =   5'b00010    ;
             end
             `Sw         :   begin
                 ALU_source      =   1           ;
@@ -210,7 +210,7 @@ module controller   #(
                 ALU_op          =   3'b001      ;
                 Data_to_Reg     =   2'b11       ;
                 Select_Addr     =   2'b11       ;
-                Size_control    =   5'b11000    ;
+                Size_control    =   5'b00011    ;
             end
             `Slti       :   begin
                 Reg_write       =   1           ;

@@ -41,8 +41,7 @@ module controller_pipe  #(
     output  reg                     Jump_flag       ,
     output  reg     [1:0]           Reg_dst         ,
     output  reg     [1:0]           Select_Addr     ,
-    output  reg     [2:0]           Load_control    ,
-    output  reg     [1:0]           Store_size      ,
+    output  reg     [4:0]           Size_control    ,
     output  reg                     Link_flag
     );
     
@@ -63,8 +62,7 @@ module controller_pipe  #(
         Jump_flag       =   0       ;
         Reg_dst         =   2'b00   ;
         Select_Addr     =   2'b11   ;
-        Load_control    =   3'b000  ;
-        Store_size      =   2'b00   ;
+        Size_control    =   5'b00000;
         Link_flag       =   0       ;
         
         case(ALU_op)
@@ -127,7 +125,7 @@ module controller_pipe  #(
                 ALU_op          =   3'b001      ;
                 Mem_to_Reg      =   1           ;
                 Mem_read        =   1           ;
-                Load_control    =   3'b001      ;
+                Size_control    =   5'b01100    ;
             end
             `Lbu        :   begin
                 Reg_write       =   1           ;
@@ -135,7 +133,7 @@ module controller_pipe  #(
                 ALU_op          =   3'b001      ;
                 Mem_to_Reg      =   1           ;
                 Mem_read        =   1           ;
-                Load_control    =   3'b101      ;
+                Size_control    =   5'b01000    ;
             end
             `Lh         :   begin
                 Reg_write       =   1           ;
@@ -143,7 +141,7 @@ module controller_pipe  #(
                 ALU_op          =   3'b001      ;
                 Mem_to_Reg      =   1           ;
                 Mem_read        =   1           ;
-                Load_control    =   3'b010      ;
+                Size_control    =   5'b10100    ;
             end
             `Lhu        :   begin
                 Reg_write       =   1           ;
@@ -151,7 +149,7 @@ module controller_pipe  #(
                 ALU_op          =   3'b001      ;
                 Mem_to_Reg      =   1           ;
                 Mem_read        =   1           ;
-                Load_control    =   3'b110      ;
+                Size_control    =   5'b10000    ;
             end
             `Lw         :   begin
                 Reg_write       =   1           ;
@@ -159,7 +157,7 @@ module controller_pipe  #(
                 ALU_op          =   3'b001      ;
                 Mem_to_Reg      =   1           ;
                 Mem_read        =   1           ;
-                Load_control    =   3'b011      ;
+                Size_control    =   5'b11100    ;
             end
             `Lwu        :   begin
                 Reg_write       =   1           ;
@@ -167,7 +165,7 @@ module controller_pipe  #(
                 ALU_op          =   3'b001      ;
                 Mem_to_Reg      =   1           ;
                 Mem_read        =   1           ;
-                Load_control    =   3'b111      ;
+                Size_control    =   5'b11000    ;
             end
             `Lui        :   begin
                 Reg_write       =   1           ;
@@ -183,19 +181,19 @@ module controller_pipe  #(
                 ALU_source      =   1           ;
                 Mem_write       =   1           ;
                 ALU_op          =   3'b001      ;
-                Store_size      =   2'b01       ;
+                Size_control    =   5'b00001    ;
             end
             `Sh         :   begin
                 ALU_source      =   1           ;
                 Mem_write       =   1           ;
                 ALU_op          =   3'b001      ;
-                Store_size      =   2'b10       ;
+                Size_control    =   5'b00010    ;
             end
             `Sw         :   begin
                 ALU_source      =   1           ;
                 Mem_write       =   1           ;
                 ALU_op          =   3'b001      ;
-                Store_size      =   2'b11       ;
+                Size_control    =   5'b00011    ;
             end
             `Slti       :   begin
                 Reg_write       =   1           ;
