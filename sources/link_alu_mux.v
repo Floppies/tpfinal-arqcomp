@@ -9,6 +9,6 @@ module link_alu_mux     #(
     output  wire    [NBITS-1:0]     o_aluinA
     );
     
-    assign  o_aluinA    =   (link_flag) ? i_rs : 0  ;
+    assign  o_aluinA    =   (link_flag) ? 0 : i_rs;
     
 endmodule

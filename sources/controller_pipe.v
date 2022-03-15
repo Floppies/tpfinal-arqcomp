@@ -65,7 +65,7 @@ module controller_pipe  #(
         Size_control    =   5'b00000;
         Link_flag       =   0       ;
         
-        case(ALU_op)
+        case(opcode)
             `Rtp        :
                 begin   :   RType
                     case(i_funct)

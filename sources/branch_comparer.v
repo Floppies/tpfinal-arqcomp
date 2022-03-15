@@ -9,6 +9,6 @@ module branch_comparer  #(
     output  wire                zero
     );
     
-    assign zero =   (i_rs == i_rt) ? 0 : 1  ;
+    assign zero =   (i_rs == i_rt) ? 1 : 0  ;
     
 endmodule

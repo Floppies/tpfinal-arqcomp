@@ -46,7 +46,7 @@ always  @(posedge i_clk)
             begin
                 byte_tmp    <=  RAM_mem[i_Addr] ;
                 if(size_control[2])
-                    o_Data  <=  (RAM_mem[i_Addr][DATA_LENGTH-1] == 1) ? {24'h000000, byte_tmp} : {24'hFFFFFF, byte_tmp} ;
+                    o_Data  <=  (RAM_mem[i_Addr][DATA_LENGTH-1] == 1) ? {24'hFFFFFF, byte_tmp} : {24'h000000, byte_tmp} ;
                 else
                     o_Data  <=  {24'h000000, byte_tmp}  ;
             end
@@ -54,9 +54,9 @@ always  @(posedge i_clk)
             begin
                 half_tmp    <=  RAM_mem[i_Addr] ;
                 if(size_control[2])
-                    o_Data  <=  (RAM_mem[i_Addr][DATA_LENGTH-1] == 1) ? {16'h000000, byte_tmp} : {16'hFFFFFF, byte_tmp} ;
+                    o_Data  <=  (RAM_mem[i_Addr][DATA_LENGTH-1] == 1) ? {16'hFFFFFF, half_tmp} : {16'h000000, half_tmp} ;
                 else
-                    o_Data  <=  {16'h000000, byte_tmp}  ;
+                    o_Data  <=  {16'h000000, half_tmp}  ;
             end
             default     :   o_Data  <=  RAM_mem[i_Addr] ;
         endcase

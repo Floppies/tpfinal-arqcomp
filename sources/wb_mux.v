@@ -10,6 +10,6 @@ module wb_mux   #(
     output  wire    [NBITS-1:0]     o_regdata
     );
     
-    assign  o_regdata   =   (memtoreg) ? i_aluresult : i_wbstgdata  ;
+    assign  o_regdata   =   (memtoreg) ? i_wbstgdata : i_aluresult  ;
     
 endmodule

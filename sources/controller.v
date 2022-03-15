@@ -63,7 +63,7 @@ module controller   #(
         Select_Addr     =   2'b00   ;
         Size_control    =   5'b00000;
         
-        case(ALU_op)
+        case(opcode)
             `Rtp        :
                 begin   :   RType
                     case(i_funct)

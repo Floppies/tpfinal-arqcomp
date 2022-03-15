@@ -10,6 +10,6 @@ module mem_stage_mux    #(
     output  wire    [NBITS-1:0]     o_memstgdata
     );
     
-    assign  o_memstgdata    =   (memread) ? i_aluresult : i_memdata ;
+    assign  o_memstgdata    =   (memread) ? i_memdata : i_aluresult;
     
 endmodule

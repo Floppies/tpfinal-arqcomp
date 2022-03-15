@@ -31,12 +31,13 @@ module ALU #(
     
     always @(*)
 	begin : operaciones
-		case(ALU_control)
-			`ADD     :   result_op   =   operando_A + operando_B     ;
+	   zero    =   0   ;
+	       case(ALU_control)
+	        `ADD     :   result_op   =   operando_A + operando_B     ;
 			`SUB     :
                 begin
                     result_op   =   operando_A - operando_B         ;
-                    zero        =   (result_op == 0) ? 0 : 1        ;
+                    zero        =   (result_op == 0) ? 1 : 0        ;
                 end
 			`AND     :   result_op   =   operando_A & operando_B     ;
 			`OR      :   result_op   =   operando_A | operando_B     ;
@@ -48,7 +49,7 @@ module ALU #(
 			`SRL     :   result_op   =   operando_A >> operando_B[10:6]      ;
 			`SLL     :   result_op   =   operando_A << operando_B[10:6]      ;
 			`NOR     :   result_op   =   ~(operando_A | operando_B)  ;
-			`SLT     :   result_op   =   (operando_A == operando_B) ? 0 : 1  ;
+			`SLT     :   result_op   =   (operando_A == operando_B) ? 1 : 0  ;
 			`LUI     :   result_op   =   operando_B << 16            ;
 			default  :   result_op   =   {NBITS{1'b1}}              ;   //FF es el resultado default
 		endcase

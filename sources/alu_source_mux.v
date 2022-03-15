@@ -10,6 +10,6 @@ module alu_source_mux   #(
     output  wire    [NBITS-1:0]     o_aluinB
     );
     
-    assign  o_aluinB    =   (alu_source) ? i_reg : i_immediate  ;
+    assign  o_aluinB    =   (alu_source) ? i_immediate : i_reg  ;
     
 endmodule

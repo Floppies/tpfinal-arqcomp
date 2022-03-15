@@ -10,6 +10,6 @@ module link_mux     #(
     output  wire    [NBITS-1:0]     o_imm
     );
     
-    assign  o_imm       =   (link_flag) ? i_immediate : i_linkinst  ;
+    assign  o_imm       =   (link_flag) ? i_linkinst : i_immediate  ;
     
 endmodule

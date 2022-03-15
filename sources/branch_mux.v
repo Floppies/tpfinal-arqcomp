@@ -10,6 +10,6 @@ module branch_mux   #(
     output  wire    [NBITS-1:0]     next_pc
     );
     
-    assign  next_pc     =   (branch) ? next_inst : jump_addr    ;
+    assign  next_pc     =   (branch) ? jump_addr : next_inst    ;
     
 endmodule
