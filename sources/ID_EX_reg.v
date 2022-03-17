@@ -12,24 +12,22 @@ module ID_EX_reg    #(
     input   wire    [RBITS-1:0]     ID_rd,  ID_rt   ,   //Nombre de los registros
     input   wire    [FBITS-1:0]     ID_funct        ,
     input   wire    [NBITS-1:0]     ID_immediate    ,
-    input   wire    [1:0]           ID_storesize    ,
-    input   wire    [2:0]           ID_loadcontrol  ,
+    input   wire    [4:0]           ID_sizecontrol  ,
     input   wire    ID_memtoreg,    ID_memread      ,
                     ID_memwrite,    ID_alusource    ,
                     ID_link,        ID_regwrite     ,
-    input   wire    [1:0]           ID_aluop        ,
+    input   wire    [2:0]           ID_aluop        ,
     input   wire    [1:0]           ID_regdst       ,
     //Salidas
     output  reg     [NBITS-1:0]     EX_Rs,  EX_Rt   ,   //Datos de los registros
     output  reg     [RBITS-1:0]     EX_rd,  EX_rt   ,   //Nombre de los registros
     output  reg     [FBITS-1:0]     EX_funct        ,
     output  reg     [NBITS-1:0]     EX_immediate    ,
-    output  reg     [1:0]           EX_storesize    ,
-    output  reg     [2:0]           EX_loadcontrol  ,
+    output  reg     [4:0]           EX_sizecontrol  ,
     output  reg     EX_memtoreg,    EX_memread      ,
                     EX_memwrite,    EX_alusource    ,
                     EX_link,        EX_regwrite     ,
-    output  reg     [1:0]           EX_aluop        ,
+    output  reg     [2:0]           EX_aluop        ,
     output  reg     [1:0]           EX_regdst
 );
 
@@ -43,8 +41,7 @@ always  @(posedge i_clk)
             EX_rd           <=      5'b0            ;
             EX_rt           <=      5'b0            ;
             EX_funct        <=      6'b0            ;
-            EX_storesize    <=      2'b0            ;
-            EX_loadcontrol  <=      3'b0            ;
+            EX_sizecontrol  <=      5'b0            ;
             EX_regwrite     <=      0               ;
             EX_memtoreg     <=      0               ;
             EX_memread      <=      0               ;
@@ -62,8 +59,7 @@ always  @(posedge i_clk)
             EX_rd           <=      ID_rd           ;
             EX_rt           <=      ID_rt           ;
             EX_funct        <=      ID_funct        ;
-            EX_storesize    <=      ID_storesize    ;
-            EX_loadcontrol  <=      ID_loadcontrol  ;
+            EX_sizecontrol  <=      ID_sizecontrol  ;
             EX_regwrite     <=      ID_regwrite     ;
             EX_memtoreg     <=      ID_memtoreg     ;
             EX_memread      <=      ID_memread      ;
