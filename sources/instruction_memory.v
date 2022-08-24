@@ -16,7 +16,7 @@ reg [WORD_WIDTH-1:0]    ROM_mem[0:MEM_SIZE-1]   ;
 
 initial
     begin
-        $readmemb("C:/Users/flopp/OneDrive/Escritorio/programMemory.list", ROM_mem) ;   // ESto es TEMPORAL
+        $readmemb("C:/Users/flopp/OneDrive/Escritorio/program_memory.list", ROM_mem) ;   // ESto es TEMPORAL
     end
 
 always  @(i_Addr)

@@ -10,16 +10,14 @@ module EX_MEM_reg   #(
     input   wire    [NBITS-1:0]     EX_result       ,   //Resultado de la ALU
     input   wire    [RBITS-1:0]     EX_rd           ,   //Nombre de los registros
     input   wire    [NBITS-1:0]     EX_Rt           ,
-    input   wire    [1:0]           EX_storesize    ,
-    input   wire    [2:0]           EX_loadcontrol  ,
+    input   wire    [4:0]           EX_sizecontrol  ,
     input   wire    EX_memtoreg,    EX_memread      ,
                     EX_regwrite,    EX_memwrite     ,
     //Salidas
     output  reg     [NBITS-1:0]     MEM_result      ,   //Resultado de la ALU
     output  reg     [RBITS-1:0]     MEM_rd          ,   //Nombre de los registros
     output  reg     [NBITS-1:0]     MEM_Rt          ,
-    output  reg     [1:0]           MEM_storesize   ,
-    output  reg     [2:0]           MEM_loadcontrol ,
+    output  reg     [4:0]           MEM_sizecontrol ,
     output  reg     MEM_memtoreg,   MEM_memread     ,
                     MEM_regwrite,   MEM_memwrite
 );
@@ -31,8 +29,7 @@ always  @(posedge i_clk)
             MEM_result      <=      32'b0           ;
             MEM_Rt          <=      32'b0           ;
             MEM_rd          <=      5'b0            ;
-            MEM_storesize   <=      2'b0            ;
-            MEM_loadcontrol <=      3'b0            ;
+            MEM_sizecontrol <=      5'b0            ;
             MEM_regwrite    <=      0               ;
             MEM_memtoreg    <=      0               ;
             MEM_memread     <=      0               ;
@@ -43,8 +40,7 @@ always  @(posedge i_clk)
             MEM_result      <=      EX_result       ;
             MEM_Rt          <=      EX_Rt           ;
             MEM_rd          <=      EX_rd           ;
-            MEM_storesize   <=      EX_storesize    ;
-            MEM_loadcontrol <=      EX_loadcontrol  ;
+            MEM_sizecontrol <=      EX_sizecontrol  ;
             MEM_regwrite    <=      EX_regwrite     ;
             MEM_memtoreg    <=      EX_memtoreg     ;
             MEM_memread     <=      EX_memread      ;

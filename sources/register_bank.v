@@ -18,7 +18,7 @@ module register_bank    #(
 );
 
 reg [WORD_WIDTH-1:0]    reg_bank[0:BANK_SIZE-1] ;   //  Banco de Registros
-reg     i       ;
+integer     i       ;
 
 assign  o_rg1D      =   reg_bank[i_reg1]        ;
 assign  o_rg2D      =   reg_bank[i_reg2]        ;
@@ -28,7 +28,7 @@ always  @(negedge i_clk)
         if  (i_rst)
         begin
             // set all registers to their defaults 
-            for(i = 0; i < 32; i = i + 1 )
+            for(i = 0; i < BANK_SIZE; i = i + 1 )
                 reg_bank[i]     =       32'h0   ;
         end
         else if (enable)

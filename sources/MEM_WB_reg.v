@@ -30,11 +30,11 @@ always  @(posedge i_clk)
         end
         else
         begin
-            WB_result       <=      WB_result       ;
-            WB_data         <=      WB_data         ;
-            WB_rd           <=      WB_rd           ;
-            WB_regwrite     <=      WB_regwrite     ;
-            WB_memtoreg     <=      WB_memtoreg     ;
+            WB_result       <=      MEM_result      ;
+            WB_data         <=      MEM_data        ;
+            WB_rd           <=      MEM_rd          ;
+            WB_regwrite     <=      MEM_regwrite    ;
+            WB_memtoreg     <=      MEM_memtoreg    ;
         end
     end
 

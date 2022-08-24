@@ -14,9 +14,9 @@ module sign_extend_tb();
     initial begin
     $dumpfile("dump.vcd"); $dumpvars;
         #10
-        signal      =   16'hF00F    ;
-        #10
         signal      =   16'h000F    ;
+        #10
+        signal      =   16'hF00F    ;
         #10
         $finish;
     end
