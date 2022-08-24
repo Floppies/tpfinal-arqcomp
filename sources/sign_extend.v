@@ -11,7 +11,7 @@ module sign_extend  #(
     );
     
     assign o_ext    =   (i_sign[NBITS-1] == 1)? {16'hffff , i_sign} : 
-                        (i_sign[NBITS-1] == 0)? {16'h0000 ,i_sign}  : 16'hxxxx  ;
+                        (i_sign[NBITS-1] == 0)? {16'h0000 , i_sign}  : 16'hxxxx  ;
                         
 endmodule
 

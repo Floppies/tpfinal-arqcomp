@@ -6,7 +6,7 @@ module reg_dst_mux  #(
     //Entradas
     input   wire    [NBITS-1:0]     reg_rt      ,
     input   wire    [NBITS-1:0]     reg_rd      ,
-    input   wire    [NBITS-1:0]     reg_31      ,
+    //input   wire    [NBITS-1:0]     reg_31      ,
     input   wire    [SELBITS-1:0]   sel_reg     ,
     //Outputs
     output  wire    [NBITS-1:0]     mux_reg
