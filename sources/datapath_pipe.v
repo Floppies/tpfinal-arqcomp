@@ -8,7 +8,8 @@ module datapath_pipe    #(
 )
 (
     input       wire                clk     ,
-    input       wire                rst
+    input       wire                rst     ,
+    output      wire                pium
 );
 
     // Parametros locales
@@ -22,6 +23,7 @@ module datapath_pipe    #(
     wire    [NBITS-1:0]     current_pc      ;
     wire    [NBITS-1:0]     pc_mux          ;
     wire    [NBITS-1:0]     IF_inst         ;
+    assign  pium        =   MEM_MemWrite;
     
     // Instruction Decode
     wire    [NBITS-1:0]     ID_inst         ;

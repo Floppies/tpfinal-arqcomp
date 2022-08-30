@@ -3,13 +3,16 @@
 module datapath_pipe_tb();
 
     //Parametros
-    localparam      MEM_SIZE        =   5   ;
+    localparam      MEM_SIZE        =   6   ;
     localparam      BANK_SIZE       =   32  ;
     localparam      NBITS           =   32  ;
     localparam      RBITS           =   5   ;
     
     //Entradas
     reg             i_clk   ,   i_rst       ;
+    
+    //Salidas
+    wire pium;
     
     initial begin
         $dumpfile("dump.vcd"); $dumpvars;
@@ -38,7 +41,8 @@ module datapath_pipe_tb();
     )DATAPATHPIPE
     (
         .clk            (i_clk)         ,
-        .rst            (i_rst)
+        .rst            (i_rst)         ,
+        .pium           (pium)
     );
     
 endmodule
