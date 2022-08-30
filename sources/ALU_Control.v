@@ -35,8 +35,8 @@ module ALU_Control #(
     )
     (
     //Entradas
-    input   wire    [FBITS-1:0]     ALU_op          ,
-    input   wire    [OPBITS-1:0]    i_funct         ,
+    input   wire    [OPBITS-1:0]    ALU_op          ,
+    input   wire    [FBITS-1:0]     i_funct         ,
     //Salidas
     output  reg     [CTRBITS-1:0]   ALU_control
     );

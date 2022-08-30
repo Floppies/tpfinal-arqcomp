@@ -39,7 +39,7 @@ module datapath_pipe    #(
     wire    [NBITS-1:0]     ID_immediate    ;
     wire    [NBITS-1:0]     ext_imm         ;
     wire    [NBITS-1:0]     link_pc         ;
-    assign  link_pc     =   ID_next_pc + 4  ;
+    assign  link_pc     =   ID_next_pc + 1  ;
     wire    [NBITS-1:0]     branch_addr     ;
     wire                    zero_Rs_Rt      ;
     wire    [OPBITS-1:0]    ID_funct        ;
@@ -81,14 +81,14 @@ module datapath_pipe    #(
             ALUSrc      ,   Link            ,
             BEQ     ,   BNE     ,   Jump    ;
     wire    [4:0]           SizeControl     ;
-    wire    [1:0]           ALUOp           ;
+    wire    [2:0]           ALUOp           ;
     wire    [1:0]           RegDst          ;
     wire    [1:0]           SelectAddr      ;
     wire    [4:0]           EX_SizeControl  ;
     wire    EX_RegWrite ,   EX_MemtoReg     ,
             EX_MemWrite ,   EX_MemRead      ,
             EX_ALUSrc   ,   EX_Link         ;
-    wire    [1:0]           EX_ALUOp        ;
+    wire    [2:0]           EX_ALUOp        ;
     wire    [1:0]           EX_RegDst       ;
     wire    [4:0]           MEM_SizeControl ;
     wire    MEM_RegWrite,   MEM_MemtoReg    ,
@@ -232,7 +232,7 @@ module datapath_pipe    #(
     register_bank   #(
         .BANK_SIZE          (BANK_SIZE)     ,
         .WORD_WIDTH         (NBITS)         ,
-        .ADDR_LENGTH        (NBITS)         ,
+        .ADDR_LENGTH        (RBITS)         ,
         .DATA_LENGTH        (NBITS)
     )REGBANK
     (
@@ -306,7 +306,7 @@ module datapath_pipe    #(
         .o_aluinB           (inB)
     );
     reg_dst_mux     #(
-        .NBITS              (NBITS)
+        .NBITS              (RBITS)
     )REGDSTMUX
     (
         .reg_rt             (EX_rt)         ,
@@ -333,8 +333,7 @@ module datapath_pipe    #(
     );
     EX_MEM_reg       #(
         .NBITS              (NBITS)         ,
-        .RBITS              (RBITS)         ,
-        .FBITS              (OPBITS)
+        .RBITS              (RBITS)
     )EXMEMREG
     (
         .i_clk              (clk)           ,
@@ -425,7 +424,7 @@ module datapath_pipe    #(
         .ALU_source         (ALUSrc)        ,
         .Mem_write          (MemWrite)      ,
         .ALU_op             (ALUOp)         ,
-        .Mem_to_reg         (MemtoReg)      ,
+        .Mem_to_Reg         (MemtoReg)      ,
         .Mem_read           (MemRead)       ,
         .BEQ_flag           (BEQ)           ,
         .BNE_flag           (BNE)           ,

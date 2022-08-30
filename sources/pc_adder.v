@@ -9,6 +9,6 @@ module pc_adder #(
     output  wire    [MSB-1:0]   next_pc         //  Salida
 );
 
-    assign next_pc  =   current_pc + 4      ;   //  Sumo 4 para obtener la proxima instruccion
+    assign next_pc  =   current_pc + 1      ;   //  Sumo 4 para obtener la proxima instruccion
     
 endmodule
