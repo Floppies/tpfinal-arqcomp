@@ -22,7 +22,7 @@ module reg_dst_mux  #(
     begin
         case(sel_reg)
             RT          :   reg_tmp     =   reg_rt      ;
-            R31         :   reg_tmp     =   2'd31       ;
+            R31         :   reg_tmp     =   5'd31       ;
             RD          :   reg_tmp     =   reg_rd      ;
             default     :   reg_tmp     =   5'b00000    ;
         endcase

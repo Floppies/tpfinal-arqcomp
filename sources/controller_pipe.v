@@ -114,6 +114,7 @@ module controller_pipe  #(
             `Jal        :   begin
                 Reg_write       =   1           ;
                 ALU_op          =   3'b001      ;
+                ALU_source      =   1           ;
                 Jump_flag       =   1           ;
                 Reg_dst         =   2'b01       ;
                 Select_Addr     =   2'b00       ;

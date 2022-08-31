@@ -107,7 +107,7 @@ module datapath_pipe    #(
     wire    branch_sel  ,   branch_comparer ;
     wire    [NBITS-1:0]     selected_addr   ;
     wire    [NBITS-1:0]     jump_addr       ;
-    assign jump_addr    =   {ID_next_pc[31:28]  ,   (ID_inst[25:0]<<2)}     ;
+    assign jump_addr    =   {ID_next_pc[31:28]  ,   ID_inst[25:0]}          ;
     wire                    flush           ;
     wire                    cond_jump       ;
     assign  cond_jump   =   (zero_Rs_Rt & BEQ)  |   (~(zero_Rs_Rt) & BNE)   ;
