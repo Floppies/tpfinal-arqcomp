@@ -3,12 +3,12 @@ module hazard_detection_unit    #(
     )
     (
     //Entradas
-    input   wire    [RBITS-1:0]     IF_ID_rs        ,
-    input   wire    [RBITS-1:0]     IF_ID_rt        ,
-    input   wire    [RBITS-1:0]     ID_EX_rd        ,
-    input   wire                    ID_EX_memread   ,
+    input   wire    [RBITS-1:0]     IF_ID_rs            ,
+    input   wire    [RBITS-1:0]     IF_ID_rt            ,
+    input   wire    [RBITS-1:0]     ID_EX_rd            ,
+    input   wire                    ID_EX_memread       ,
     //Salidas
-    output  reg     write_pc,       stall_ID
+    output  reg     write_pc,   stall_ID    ,   nop_EX
     );
     
     always  @(*)
@@ -17,11 +17,13 @@ module hazard_detection_unit    #(
         begin
             write_pc    =   0   ;
             stall_ID    =   1   ;
+            nop_EX      =   1   ;
         end
         else
         begin
             write_pc    =   1   ;
             stall_ID    =   0   ;
+            nop_EX      =   0   ;
         end
     end
     

@@ -7,7 +7,7 @@ module ID_EX_reg    #(
 )
 (
     //Entradas
-    input   wire    i_clk   ,       i_rst,  stallID ,
+    input   wire    i_clk   ,       i_rst,  i_nop   ,
     input   wire    [NBITS-1:0]     ID_Rs,  ID_Rt   ,   //Datos de los registros
     input   wire    [RBITS-1:0]     ID_rd,  ID_rt   ,   //Nombre de los registros
     input   wire    [FBITS-1:0]     ID_funct        ,
@@ -33,7 +33,7 @@ module ID_EX_reg    #(
 
 always  @(posedge i_clk)
     begin
-        if  (i_rst)
+        if  (i_rst  ||  i_nop)
         begin
             EX_Rs           <=      32'b0           ;
             EX_Rt           <=      32'b0           ;
@@ -51,7 +51,7 @@ always  @(posedge i_clk)
             EX_aluop        <=      2'b0            ;
             EX_regdst       <=      2'b0            ;
         end
-        else if (!stallID)
+        else
         begin
             EX_Rs           <=      ID_Rs           ;
             EX_Rt           <=      ID_Rt           ;

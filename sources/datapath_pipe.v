@@ -101,7 +101,7 @@ module datapath_pipe    #(
     wire    [1:0]   fwd_A   ,   fwd_B       ;
     
     // Hazard Detection Unit
-    wire    writePC     ,   stallID         ;
+    wire    writePC ,   stallID ,   nopEX   ;
     
     // Branch Control
     wire    branch_sel  ,   branch_comparer ;
@@ -159,6 +159,7 @@ module datapath_pipe    #(
         .i_clk              (clk)           ,
         .i_rst              (rst)           ,
         .flush              (flush)         ,
+        .stall_ID           (stallID)       ,
         .IF_next_pc         (IF_next_pc)    ,
         .IF_inst            (IF_inst)       ,
         .ID_next_pc         (ID_next_pc)    ,
@@ -256,7 +257,7 @@ module datapath_pipe    #(
     (
         .i_clk              (clk)           ,
         .i_rst              (rst)           ,
-        .stallID            (stallID)       ,
+        .i_nop              (nopEX)         ,
         .ID_Rs              (ID_Rs)         ,
         .ID_Rt              (ID_Rt)         ,
         .ID_rd              (ID_rd)         ,
@@ -460,7 +461,8 @@ module datapath_pipe    #(
         .ID_EX_rd           (ID_EX_rd)      ,
         .ID_EX_memread      (EX_MemRead)    ,
         .write_pc           (writePC)       ,
-        .stall_ID           (stallID)
+        .stall_ID           (stallID)       ,
+        .nop_EX             (nopEX)
     );
     
 endmodule
