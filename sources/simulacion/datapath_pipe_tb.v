@@ -3,7 +3,7 @@
 module datapath_pipe_tb();
 
     //Parametros
-    localparam      MEM_SIZE        =   7   ;
+    localparam      MEM_SIZE        =   8   ;
     localparam      BANK_SIZE       =   32  ;
     localparam      NBITS           =   32  ;
     localparam      RBITS           =   5   ;

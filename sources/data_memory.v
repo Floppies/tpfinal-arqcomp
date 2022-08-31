@@ -28,11 +28,11 @@ localparam  [1:0]
 //reg     [15:0]              half_tmp    ;
 
 //  Bloque que maneja la lectura de la RAM
-always  @(posedge i_clk)
+always  @(i_clk)
     begin
-        o_Data      <=  RAM_mem[i_Addr] ;
-        if (Re)
-        begin
+        //o_Data      <=  RAM_mem[i_Addr] ;
+       // if (Re)
+        //begin
             //byte_tmp    <=  RAM_mem[i_Addr] ;
             //half_tmp    <=  RAM_mem[i_Addr] ;
             case(size_control[4:3])
@@ -61,9 +61,9 @@ always  @(posedge i_clk)
                 o_Data  <=  RAM_mem[i_Addr] ;
             end
             endcase
-        end
-        else
-            o_Data      <=  32'hFFFFFFFF            ;
+        //end
+        //else
+            //o_Data      <=  32'hFFFFFFFF            ;
     end
     
 //  Bloque que maneja la escritura de la RAM
