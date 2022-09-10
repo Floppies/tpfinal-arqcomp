@@ -46,6 +46,7 @@ module mips_full    #(
     //  Debug Unit
     wire    [IM_ADDR_LENGTH-1:0]        IM_Addr_DU  ;
     wire    [INST_WIDTH-1:0]            IM_Data_DU  ;
+    wire                                IM_We_DU    ;
     wire    [RBITS-1:0]                 RB_Addr_DU  ;
     wire    [DM_ADDR_LENGTH-1:0]        DM_Addr_DU  ;
     wire                                enable      ;
@@ -123,6 +124,7 @@ module mips_full    #(
         .current_pc         (IM_Addr_MIPS)      ,
         .IM_Addr            (IM_Addr_DU)        ,
         .IM_Data            (IM_Data_DU)        ,
+        .IM_We              (IM_We_DU)          ,
         .RB_Addr            (RB_Addr_DU)        ,
         .DM_Addr            (DM_Addr_DU)        ,
         .enable             (enable)            ,
@@ -137,6 +139,9 @@ module mips_full    #(
         .DATA_LENGTH        (INST_WIDTH)
     )IMIM
     (
+        .i_clk              (clk_out1)          ,
+        .i_rst              (o_rst)             ,
+        .We                 (IM_We_DU)          ,
         .i_Addr             (IM_Addr)           ,
         .i_Data             (IM_Data_DU)        ,
         .o_Data             (IM_inst)

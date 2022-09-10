@@ -26,6 +26,7 @@ module debug_controller #(
     //Outputs
     output  wire    [IM_ADDR_LENGTH-1:0]    IM_Addr     ,
     output  wire    [DATA_WIDTH-1:0]        IM_Data     ,
+    output  wire                            IM_We       ,
     output  wire    [RBITS-1:0]             RB_Addr     ,
     output  wire    [DM_ADDR_LENGTH-1:0]    DM_Addr     ,
     output  wire    [NBITS-1:0]             tx_Data     ,
@@ -53,6 +54,7 @@ module debug_controller #(
     //  auxs de salidas
     reg     [IM_ADDR_LENGTH-1:0]    im_addr_reg     ,   im_addr_next    ;
     reg     [DATA_WIDTH-1:0]        im_data_reg     ,   im_data_next    ;
+    reg                             im_we_reg       ,   im_we_next      ;
     reg     [RBITS-1:0]             rb_addr_reg     ,   rb_addr_next    ;
     reg     [NBITS-1:0]             tx_data_reg     ,   tx_data_next    ;
     reg     [DM_ADDR_LENGTH-1:0]    dm_addr_reg     ,   dm_addr_next    ;
@@ -73,6 +75,7 @@ module debug_controller #(
                 state_reg       <=      RECVPROG        ;
                 im_addr_reg     <=      0               ;
                 im_data_reg     <=      0               ;
+                im_we_reg       <=      0               ;
                 rb_addr_reg     <=      0               ;
                 tx_data_reg     <=      0               ;
                 dm_addr_reg     <=      0               ;
@@ -88,6 +91,7 @@ module debug_controller #(
                 state_reg       <=      state_next      ;
                 im_addr_reg     <=      im_addr_next    ;
                 im_data_reg     <=      im_data_next    ;
+                im_we_reg       <=      im_we_next      ;
                 rb_addr_reg     <=      rb_addr_next    ;
                 tx_data_reg     <=      tx_data_next    ;
                 dm_addr_reg     <=      dm_addr_next    ;
@@ -106,6 +110,7 @@ module debug_controller #(
         state_next      =       state_reg       ;
         im_addr_next    =       im_addr_reg     ;
         im_data_next    =       im_data_reg     ;
+        im_we_next      =       im_we_reg       ;
         rb_addr_next    =       rb_addr_reg     ;
         tx_data_next    =       tx_data_reg     ;
         dm_addr_next    =       dm_addr_reg     ;
@@ -121,12 +126,14 @@ module debug_controller #(
                 begin
                     im_addr_next    =   im_index_reg        ;       //  NO SE SI NO ESTA DE MAS alguno de estos registros?
                     im_data_next    =   rx_Data             ;
+                    im_we_next      =   1                   ;
                     o_reset_next    =   1                   ;       //  CAPAZ ESTA DE MAS PORQUE LO HAGO EN EL RESET?
                     if  (rx_done)
                         begin
                             im_index_next   =   im_index_reg + 1    ;
                             if  (rx_Data    ==  32'hFFFFFFFF)               //  Ultima instruccion (HALT)
                                 begin
+                                    im_we_next      =   0               ;
                                     o_reset_next    =   0               ;
                                     state_next      =   RECVMODE        ;
                                 end
@@ -253,6 +260,7 @@ module debug_controller #(
     assign      tx_Data         =       tx_data_reg     ;
     assign      IM_Addr         =       im_addr_reg     ;
     assign      IM_Data         =       im_data_reg     ;
+    assign      IM_We           =       im_we_reg       ;
     assign      RB_Addr         =       rb_addr_reg     ;
     assign      DM_Addr         =       dm_addr_reg     ;
     assign      tx_start        =       tx_start_reg    ;

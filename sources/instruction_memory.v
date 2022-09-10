@@ -8,20 +8,27 @@ module instruction_memory   #(
     parameter       DATA_LENGTH     =   32
 )
 (
+    input   wire    i_clk       ,       i_rst   ,
+    input   wire                        We      ,
     input   wire    [ADDR_LENGTH-1:0]   i_Addr  ,
     input   wire    [DATA_LENGTH-1:0]   i_Data  ,
     output  reg     [DATA_LENGTH-1:0]   o_Data
 );
 
-reg [WORD_WIDTH-1:0]    ROM_mem[0:MEM_SIZE-1]   ;
+reg [WORD_WIDTH-1:0]    RAM_mem[0:MEM_SIZE-1]   ;
 
-initial
+
+//  Bloque que maneja la lectura de la RAM
+always  @(i_clk)
     begin
-        $readmemb("C:/Users/flopp/OneDrive/Escritorio/program_memory.list", ROM_mem) ;   // ESto es TEMPORAL
+            o_Data      <=  RAM_mem[i_Addr]     ;
+    end
+    
+//  Bloque que maneja la escritura de la RAM
+always @(posedge i_clk)
+    begin
+        if  (We)
+            RAM_mem[i_Addr]     <=  i_Data      ;
     end
 
-always  @(i_Addr)
-    begin
-        o_Data      <=      ROM_mem[i_Addr]     ;
-    end
 endmodule

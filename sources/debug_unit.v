@@ -30,6 +30,7 @@ module debug_unit   #(
     output  wire    [INST_WIDTH-1:0]        IM_Data     ,
     output  wire    [RBITS-1:0]             RB_Addr     ,
     output  wire    [DM_ADDR_LENGTH-1:0]    DM_Addr     ,
+    output  wire                            IM_We       ,
     output  wire                            tx          ,
     output  wire                            enable      ,
     output  wire    o_clock     ,           o_rst
@@ -70,6 +71,7 @@ module debug_unit   #(
         .clock_count        (clock_count)   ,
         .IM_Addr            (IM_Addr)       ,
         .IM_Data            (IM_Data)       ,
+        .IM_We              (IM_We)         ,
         .RB_Addr            (RB_Addr)       ,
         .DM_Addr            (DM_Addr)       ,
         .tx_Data            (tx_Data)       ,
