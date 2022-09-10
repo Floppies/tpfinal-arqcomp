@@ -15,8 +15,8 @@ module mips_full    #(
     parameter   REG_WIDTH           =       32      ,
     //  Parametros para UART
     parameter   SB_TICK             =       16      ,   //TENGO QUE CAMBIAR ??
-    parameter   BAUD_DIV            =       16      ,
-    parameter   BAUD_SIZ            =       16      ,
+    parameter   BAUD_DIV            =       163     ,
+    parameter   BAUD_SIZ            =       8       ,
     parameter   NBITS               =       32
 )
 (
