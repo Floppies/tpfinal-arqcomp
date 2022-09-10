@@ -13,13 +13,15 @@ module EX_MEM_reg   #(
     input   wire    [4:0]           EX_sizecontrol  ,
     input   wire    EX_memtoreg,    EX_memread      ,
                     EX_regwrite,    EX_memwrite     ,
+                                    EX_halt_flag    ,
     //Salidas
     output  reg     [NBITS-1:0]     MEM_result      ,   //Resultado de la ALU
     output  reg     [RBITS-1:0]     MEM_rd          ,   //Nombre de los registros
     output  reg     [NBITS-1:0]     MEM_Rt          ,
     output  reg     [4:0]           MEM_sizecontrol ,
     output  reg     MEM_memtoreg,   MEM_memread     ,
-                    MEM_regwrite,   MEM_memwrite
+                    MEM_regwrite,   MEM_memwrite    ,
+                                    MEM_haltflag
 );
 
 always  @(posedge i_clk)

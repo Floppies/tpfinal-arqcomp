@@ -11,11 +11,13 @@ module MEM_WB_reg   #(
     input   wire    [RBITS-1:0]     MEM_rd          ,   //Nombre del registro destino
     input   wire    [NBITS-1:0]     MEM_data        ,   //Datos de la memoria
     input   wire    MEM_regwrite,   MEM_memtoreg    ,
+                                    MEM_haltflag    ,
     //Salidas
     output  reg     [NBITS-1:0]     WB_result       ,   //Resultado de la ALU
     output  reg     [RBITS-1:0]     WB_rd           ,   //Nombre del registro destino
     output  reg     [NBITS-1:0]     WB_data         ,   //Datos de la memoria
-    output  reg     WB_regwrite,    WB_memtoreg
+    output  reg     WB_regwrite,    WB_memtoreg     ,
+                                    WB_haltflag
 );
 
 always  @(posedge i_clk)

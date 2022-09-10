@@ -16,6 +16,7 @@ module ID_EX_reg    #(
     input   wire    ID_memtoreg,    ID_memread      ,
                     ID_memwrite,    ID_alusource    ,
                     ID_link,        ID_regwrite     ,
+                                    ID_haltflag     ,
     input   wire    [2:0]           ID_aluop        ,
     input   wire    [1:0]           ID_regdst       ,
     //Salidas
@@ -27,6 +28,7 @@ module ID_EX_reg    #(
     output  reg     EX_memtoreg,    EX_memread      ,
                     EX_memwrite,    EX_alusource    ,
                     EX_link,        EX_regwrite     ,
+                                    EX_haltflag     ,
     output  reg     [2:0]           EX_aluop        ,
     output  reg     [1:0]           EX_regdst
 );

@@ -13,6 +13,7 @@
 `define Lui     6'b001111
 `define Lw      6'b100011
 `define Lwu     6'b100111
+`define Halt    6'b111111
 `define Ori     6'b001101
 `define Sb      6'b101000
 `define Sh      6'b101001
@@ -39,6 +40,7 @@ module controller_pipe  #(
     output  reg                     BEQ_flag        ,
     output  reg                     BNE_flag        ,
     output  reg                     Jump_flag       ,
+    output  reg                     Halt_flag       ,
     output  reg     [1:0]           Reg_dst         ,
     output  reg     [1:0]           Select_Addr     ,
     output  reg     [4:0]           Size_control    ,
@@ -172,6 +174,9 @@ module controller_pipe  #(
                 Reg_write       =   1           ;
                 ALU_source      =   1           ;
                 ALU_op          =   3'b111      ;
+            end
+            `Halt       :   begin
+                Halt_flag       =   1           ;
             end
             `Ori        :   begin
                 Reg_write       =   1           ;

@@ -45,6 +45,7 @@ module mips_pipeline    #(
     
     // Instruction Fecth
     wire    [NBITS-1:0]     IF_next_pc      ;
+    wire                    write_pc        ;
     wire    [NBITS-1:0]     current_pc      ;
     assign  IM_Addr     =   current_pc      ;
     wire    [NBITS-1:0]     pc_mux          ;
@@ -120,7 +121,8 @@ module mips_pipeline    #(
     wire    RegWrite    ,   MemtoReg        ,
             MemWrite    ,   MemRead         ,
             ALUSrc      ,   Link            ,
-            BEQ     ,   BNE     ,   Jump    ;
+            BEQ     ,   BNE     ,   Jump    ,
+                            HaltFlag        ;
     wire    [4:0]           SizeControl     ;
     wire    [2:0]           ALUOp           ;
     wire    [1:0]           RegDst          ;
@@ -128,20 +130,26 @@ module mips_pipeline    #(
     wire    [4:0]           EX_SizeControl  ;
     wire    EX_RegWrite ,   EX_MemtoReg     ,
             EX_MemWrite ,   EX_MemRead      ,
-            EX_ALUSrc   ,   EX_Link         ;
+            EX_ALUSrc   ,   EX_Link         ,
+                            EX_HaltFlag     ;
     wire    [2:0]           EX_ALUOp        ;
     wire    [1:0]           EX_RegDst       ;
     wire    [4:0]           MEM_SizeControl ;
     wire    MEM_RegWrite,   MEM_MemtoReg    ,
-            MEM_MemWrite,   MEM_MemRead     ;
+            MEM_MemWrite,   MEM_MemRead     ,
+                            MEM_HaltFlag    ;
     assign  DM_MemWrite =   MEM_MemWrite    ;
-    wire    WB_RegWrite ,   WB_MemtoReg     ;
+    wire    WB_RegWrite ,   WB_MemtoReg     ,
+                            WB_HaltFlag     ;
+    
+    assign  halt_flag   =   WB_HaltFlag     ;
     assign  RB_RegWrite =   WB_RegWrite     ;    
     // Forwarding Unit
     wire    [1:0]   fwd_A   ,   fwd_B       ;
     
     // Hazard Detection Unit
     wire    writePC ,   stallID ,   nopEX   ;
+    assign write_pc     =   ~WB_HaltFlag   &&  writePC  ;
     
     // Branch Control
     wire    branch_sel  ,   branch_comparer ;
@@ -163,7 +171,7 @@ module mips_pipeline    #(
         .i_clk              (clk)           ,
         .i_rst              (rst)           ,
         .next_pc            (pc_mux)        ,
-        .write_pc           (writePC)       ,
+        .write_pc           (write_pc)      ,
         .o_pc               (current_pc)
     );
     address_mux         #(
@@ -286,6 +294,7 @@ module mips_pipeline    #(
         .ID_regwrite        (RegWrite)      ,
         .ID_aluop           (ALUOp)         ,
         .ID_regdst          (RegDst)        ,
+        .ID_haltflag        (HaltFlag)      ,
         .EX_Rs              (EX_Rs)         ,
         .EX_Rt              (EX_Rt)         ,
         .EX_rd              (EX_rd)         ,
@@ -299,6 +308,7 @@ module mips_pipeline    #(
         .EX_alusource       (EX_ALUSrc)     ,
         .EX_link            (EX_Link)       ,
         .EX_regwrite        (EX_RegWrite)   ,
+        .EX_haltflag        (EX_HaltFlag)   ,
         .EX_aluop           (EX_ALUOp)      ,
         .EX_regdst          (EX_RegDst)
     );
@@ -362,6 +372,7 @@ module mips_pipeline    #(
         .EX_memread         (EX_MemRead)    ,
         .EX_memwrite        (EX_MemWrite)   ,
         .EX_regwrite        (EX_RegWrite)   ,
+        .EX_haltflag        (EX_HaltFlag)   ,
         .MEM_result         (MEM_result)    ,
         .MEM_rd             (MEM_rd)        ,
         .MEM_Rt             (MEM_Rt)        ,
@@ -369,7 +380,8 @@ module mips_pipeline    #(
         .MEM_memtoreg       (MEM_MemtoReg)  ,
         .MEM_memread        (MEM_MemRead)   ,
         .MEM_memwrite       (MEM_MemWrite)  ,
-        .MEM_regwrite       (MEM_RegWrite)
+        .MEM_regwrite       (MEM_RegWrite)  ,
+        .MEM_haltflag       (MEM_HaltFlag)
     );
     
     // Memory
@@ -394,11 +406,13 @@ module mips_pipeline    #(
         .MEM_data           (MEM_data)      ,
         .MEM_memtoreg       (MEM_MemtoReg)  ,
         .MEM_regwrite       (MEM_RegWrite)  ,
+        .MEM_haltflag       (MEM_HaltFlag)  ,
         .WB_result          (WB_result)     ,
         .WB_rd              (WB_rd)         ,
         .WB_data            (WB_data)       ,
         .WB_regwrite        (WB_RegWrite)   ,
-        .WB_memtoreg        (WB_MemtoReg)
+        .WB_memtoreg        (WB_MemtoReg)   ,
+        .WB_haltflag        (WB_HaltFlag)
     );
     
     // Write Back
@@ -432,6 +446,7 @@ module mips_pipeline    #(
         .Reg_dst            (RegDst)        ,
         .Select_Addr        (SelectAddr)    ,
         .Size_control       (SizeControl)   ,
+        .Halt_flag          (HaltFlag)      ,
         .Link_flag          (Link)
     );
     forwarding_unit #(
