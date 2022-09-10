@@ -12,8 +12,8 @@ module debug_controller #(
     parameter   BANK_SIZE           =       32      ,
     parameter   REG_WIDTH           =       32      ,
     parameter   NBITS               =       32
-    )
-    (
+)
+(
     //Entradas
     input   wire    clk             ,   reset           ,
     input   wire    [NBITS-1:0]         rx_Data         ,

@@ -2,13 +2,14 @@
 
 module instruction_memory   #(
 
-    parameter       MEM_SIZE        =   1024    ,
+    parameter       MEM_SIZE        =   5       ,
     parameter       WORD_WIDTH      =   32      ,
     parameter       ADDR_LENGTH     =   32      ,
     parameter       DATA_LENGTH     =   32
 )
 (
     input   wire    [ADDR_LENGTH-1:0]   i_Addr  ,
+    input   wire    [DATA_LENGTH-1:0]   i_Data  ,
     output  reg     [DATA_LENGTH-1:0]   o_Data
 );
 
