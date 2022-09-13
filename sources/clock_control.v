@@ -2,13 +2,13 @@
 
 module clock_control    #(
     parameter   NBITS       =       32
-    )
-    (
+)
+(
     //Entradas
     input   wire    clock , reset , enable      ,
     output  wire    [NBITS-1:0]     clock_count ,
     output  wire                    o_clock
-    );
+);
     
     // Señales auxiliares
     reg     [NBITS-1:0]     counter     ;

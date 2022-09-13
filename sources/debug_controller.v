@@ -63,9 +63,9 @@ module debug_controller #(
     reg                             o_reset_reg     ,   o_reset_next    ;
     
     //  auxs contadores
-    reg     [IM_ADDR_LENGTH-1:0]    im_index_reg    ,   im_index_next   ;
-    reg     [RBITS-1:0]             rb_index_reg    ,   rb_index_next   ;
-    reg     [DM_ADDR_LENGTH-1:0]    dm_index_reg     ,  dm_index_next   ;
+    //reg     [IM_ADDR_LENGTH-1:0]    im_index_reg    ,   im_index_next   ;
+    //reg     [RBITS-1:0]             rb_index_reg    ,   rb_index_next   ;
+    //reg     [DM_ADDR_LENGTH-1:0]    dm_index_reg     ,  dm_index_next   ;
     
     /*      Bloque de reset     */
     always  @(posedge clk, posedge reset)
@@ -82,9 +82,9 @@ module debug_controller #(
                 tx_start_reg    <=      0               ;
                 clk_enable_reg  <=      0               ;
                 o_reset_reg     <=      1               ;
-                im_index_reg    <=      0               ;
-                rb_index_reg    <=      0               ;
-                dm_index_reg    <=      0               ;
+                //im_index_reg    <=      0               ;
+                //rb_index_reg    <=      0               ;
+                //dm_index_reg    <=      0               ;
             end
         else
             begin
@@ -98,9 +98,9 @@ module debug_controller #(
                 tx_start_reg    <=      tx_start_next   ;
                 clk_enable_reg  <=      clk_enable_next ;
                 o_reset_reg     <=      o_reset_next    ;
-                im_index_reg    <=      im_index_next   ;
-                rb_index_reg    <=      rb_index_next   ;
-                dm_index_reg    <=      dm_index_next   ;
+                //im_index_reg    <=      im_index_next   ;
+                //rb_index_reg    <=      rb_index_next   ;
+                //dm_index_reg    <=      dm_index_next   ;
             end
     end
     
@@ -117,24 +117,25 @@ module debug_controller #(
         tx_start_next   =       tx_start_reg    ;
         clk_enable_next =       clk_enable_reg  ;
         o_reset_next    =       o_reset_reg     ;
-        im_index_next   =       im_index_reg    ;
-        rb_index_next   =       rb_index_reg    ;
-        dm_index_next   =       dm_index_reg    ;
+        //im_index_next   =       im_index_reg    ;
+        //rb_index_next   =       rb_index_reg    ;
+        //dm_index_next   =       dm_index_reg    ;
         
         case    (state_reg)
             RECVPROG:
                 begin
-                    im_addr_next    =   im_index_reg        ;       //  NO SE SI NO ESTA DE MAS alguno de estos registros?
+                    //im_addr_next    =   im_index_reg        ;       //  NO SE SI NO ESTA DE MAS alguno de estos registros?
                     im_data_next    =   rx_Data             ;
                     im_we_next      =   1                   ;
                     o_reset_next    =   1                   ;       //  CAPAZ ESTA DE MAS PORQUE LO HAGO EN EL RESET?
+                    tx_start_next   =   0                   ;
                     if  (rx_done)
                         begin
-                            im_index_next   =   im_index_reg + 1    ;
+                            im_addr_next    =   im_addr_reg + 1     ;
                             if  (rx_Data    ==  32'hFFFFFFFF)               //  Ultima instruccion (HALT)
                                 begin
-                                    im_we_next      =   0               ;
-                                    o_reset_next    =   0               ;
+                                    //im_we_next      =   0               ;
+                                    //o_reset_next    =   0               ;
                                     state_next      =   RECVMODE        ;
                                 end
                             else
@@ -142,46 +143,55 @@ module debug_controller #(
                                     state_next      =   RECVPROG        ;
                                 end
                         end
-                    // habra un else ACA?
+                    else
+                        begin
+                            im_addr_next    =   im_addr_reg     ;
+                            state_next      =   RECVPROG        ;
+                        end
                 end
             RECVMODE:
                 begin
+                    tx_start_next   =   0                   ;
+                    im_we_next      =   0                   ;
+                    o_reset_next    =   0                   ;
+                    im_addr_next    =   0                   ;
                     if  (rx_done)
                         begin
-                        if  (rx_Data    ==  "STEPMODE")         // NO SE SI SE USA ASI ?
-                            begin
-                                state_next      =   RUNSTEP     ;
+                            clk_enable_next     =       1       ;
+                            if  (rx_Data    ==  32'h10001000)         // NO SE SI SE USA ASI ?
+                                begin
+                                    state_next      =   RUNSTEP     ;
+                                end
+                            else
+                                begin
+                                    state_next      =   RUNALL      ;
+                                end
                             end
-                        else
-                            begin
-                                state_next      =   RUNALL      ;
-                            end
-                        end
                     else
                         begin
-                            state_next      =   RECVMODE        ;
+                            clk_enable_next     =       0       ;
+                            state_next          =   RECVMODE    ;
                         end
                 end
             RUNALL:
                 begin
-                    clk_enable_next     =       1       ;
                     if  (halt_flag)                                 //  El programa llego a su fin
                         begin
-                            state_next      =   SENDPC          ;
+                            clk_enable_next     =   0           ;
+                            state_next          =   SENDPC      ;
                         end
                     else
                         begin
-                            state_next      =   RUNALL          ;
+                            clk_enable_next     =   1           ;
+                            state_next          =   RUNALL      ;
                         end
                 end
             SENDPC:
                 begin
-                    clk_enable_next     =       0               ;
                     tx_data_next        =       current_PC      ;
                     tx_start_next       =       1               ;
                     if  (tx_done)                                   // Se termina de transmitir
                         begin
-                            tx_start_next   =       0           ;
                             state_next      =       SENDDM      ;
                         end
                     else
@@ -191,53 +201,61 @@ module debug_controller #(
                 end
             SENDDM:
                 begin
-                    dm_addr_next        =       dm_index_reg    ;
+                    //dm_addr_next        =       dm_index_reg    ;
                     tx_data_next        =       DM_Data         ;
                     tx_start_next       =       1               ;
                     if  (tx_done)                                   //  Se termina de transmitir
                         begin
-                            tx_start_next   =   0       ;
-                            if  (dm_addr_reg    ==  DM_MEM_SIZE)    //  Se llega al final de la memoria de datos
+                            dm_addr_next        =       dm_addr_reg + 1 ;
+                            //dm_index_next   =   dm_index_reg + 1    ;
+                            if  (dm_addr_reg   >=  DM_MEM_SIZE)    //  Se llega al final de la memoria de datos
                                 begin
-                                    dm_addr_next    =   0               ;
                                     state_next      =   SENDRB          ;
                                 end
                             else
                                 begin
-                                    dm_index_next   =   dm_index_reg + 1;
                                     state_next      =   SENDDM          ;
                                 end
                         end
-                    // Capaz que hay que poner un else aca
+                    else
+                        begin
+                            dm_addr_next    =   dm_addr_reg         ;
+                            state_next      =   SENDDM              ;
+                        end
                 end
             SENDRB:
                 begin
-                    rb_addr_next        =       rb_index_reg    ; 
+                    //rb_addr_next        =       rb_index_reg    ;
+                    dm_addr_next        =       0               ;
                     tx_data_next        =       RB_Data         ;
                     tx_start_next       =       1               ;
                     if  (tx_done)                                   //  Se termina de transmitir
                         begin
-                            tx_start_next   =   0       ;
-                            if  (rb_addr_reg    ==  BANK_SIZE)      //  Se llega al final del banco de registros
+                            rb_addr_next    =   rb_addr_reg + 1     ;
+                            if  (rb_addr_reg        >=  BANK_SIZE)      //  Se llega al final del banco de registros
                                 begin
-                                    rb_index_next   =   0               ;
                                     state_next      =   SENDCLK         ;
                                 end
                             else
                                 begin
-                                    rb_index_next   =   rb_index_reg + 1;
                                     state_next      =   SENDRB          ;
                                 end
                         end
                     // Capaz que hay que poner un else aca
+                    else
+                        begin
+                            rb_addr_next    =   rb_addr_reg     ;
+                            state_next      =   SENDRB          ;
+                        end
                 end
             SENDCLK:
                 begin
+                    rb_addr_next        =       0               ;
                     tx_data_next        =       clock_count     ;
                     tx_start_next       =       1               ;
                     if  (tx_done)                                   //  Se termina de transmitir
                         begin
-                            tx_start_next   =   0       ;
+                            //tx_start_next       =       0       ;
                             if  (halt_flag)                         //  Se termino el programa
                                 begin
                                     state_next      =   RECVPROG        ;
@@ -247,11 +265,20 @@ module debug_controller #(
                                     state_next      =   RECVMODE        ;
                                 end
                         end
+                    else
+                        begin
+                            state_next      =   SENDCLK     ;
+                        end
                 end
-             RUNSTEP:
+            RUNSTEP:
                 begin
-                    clk_enable_next     =       1       ;
-                    state_next          =       SENDPC  ;
+                    clk_enable_next     =       0           ;
+                    state_next          =       SENDPC      ;
+                end
+            default:
+                begin
+                    clk_enable_next     =       0           ;
+                    state_next          =       RECVPROG    ;
                 end
         endcase
     end
