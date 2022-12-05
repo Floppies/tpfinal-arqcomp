@@ -26,7 +26,7 @@ module debug_ctrl_tb();
     
     //Salidas
     wire    [IM_ADDR_LENGTH-1:0]    IM_Addr     ;
-    wire    [DATA_WIDTH-1:0]        IM_Data     ;
+    wire    [INST_WIDTH-1:0]        IM_Data     ;
     wire                            IM_We       ;
     wire    [RBITS-1:0]             RB_Addr     ;
     wire    [DM_ADDR_LENGTH-1:0]    DM_Addr     ;
