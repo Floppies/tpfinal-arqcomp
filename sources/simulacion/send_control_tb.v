@@ -1,13 +1,13 @@
-`timescale 10ns / 10ps
+`timescale 100ns / 100ps
 
 module send_control_tb();
 
     //Parametros
     localparam      DM_ADDR_LENGTH  =   32      ;
-    localparam      DM_MEM_SIZE     =   2       ;
+    localparam      DM_MEM_SIZE     =   4       ;
     localparam      DATA_WIDTH      =   32      ;
     localparam      RBITS           =   5       ;
-    localparam      BANK_SIZE       =   2       ;
+    localparam      BANK_SIZE       =   4       ;
     localparam      REG_WIDTH       =   32      ;
     localparam      NBITS           =   32      ;
     
@@ -54,19 +54,27 @@ initial begin
         send_flag   =       0       ;
         
         #5
-        tx_done     =       0       ;
+        tx_done     =       1      ;
         #5
         tx_done     =       1       ;
         #5
-        tx_done     =       0       ;
+        tx_done     =       1       ;
+        DM_Data     =   32'hFFFFFFFF;
         #5
         tx_done     =       1       ;
         #5
-        tx_done     =       0       ;
+        tx_done     =       1       ;
         #5
         tx_done     =       1       ;
         #5
-        tx_done     =       0       ;
+        tx_done     =       1       ;
+        RB_Data     =   32'hFFFFFFFF; 
+        #5
+        tx_done     =       1       ;
+        
+        #5
+        tx_done     =       1       ;
+        
         #5
         tx_done     =       1       ;
         

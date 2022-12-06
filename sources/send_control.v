@@ -42,7 +42,7 @@ module send_control #(
     reg     [RBITS-1:0]             rb_addr_reg     ,   rb_addr_next    ;
     reg     [NBITS-1:0]             tx_data_reg     ,   tx_data_next    ;
     reg                             tx_start_reg    ,   tx_start_next   ;
-    reg                             send_done_reg   ,   send_done_next  ;
+    reg                             send_done_reg   ,   send_done_next  ;   
     
     /*      Bloque de reset     */
     always  @(posedge clk, posedge reset)
@@ -104,7 +104,7 @@ module send_control #(
                     tx_start_next   =       1           ;
                     if  (tx_done)
                         begin
-                            state_next      =       SENDCLK ;
+                            state_next      =       SENDDM  ;
                         end
                     else
                         begin
@@ -120,7 +120,7 @@ module send_control #(
                     
                     if  (tx_done)
                         begin
-                            if  (DM_Addr    >= DM_MEM_SIZE)
+                            if  (DM_Data    ==  32'hFFFFFFFF)
                                 begin
                                     dm_addr_next    =   0       ;
                                     state_next      =   SENDRB  ;
@@ -145,7 +145,7 @@ module send_control #(
                     tx_start_next   =       1           ;
                     if  (tx_done)
                         begin
-                            if  (rb_addr_reg >= BANK_SIZE)
+                            if  (RB_Data    ==  32'hFFFFFFFF)
                                 begin
                                     rb_addr_next    =   0       ;
                                     state_next      =   SENDCLK ;
@@ -191,11 +191,12 @@ module send_control #(
                 end
         endcase
     end
-    
+       
     //  Salida
     assign      DM_Addr         =       dm_addr_reg     ;
     assign      RB_Addr         =       rb_addr_reg     ;
     assign      tx_Data         =       tx_data_reg     ;
     assign      send_done       =       send_done_reg   ;
     assign      tx_start        =       tx_start_reg    ;
+
 endmodule
