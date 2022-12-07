@@ -18,7 +18,7 @@ module debug_control    #(
                                         send_flag   ,
                                         IM_We       ,
     output  wire    [IM_ADDR_LENGTH-1:0]IM_Addr     ,
-    output  wire    [INST_WIDTH-1:0]    DM_Addr
+    output  wire    [INST_WIDTH-1:0]    IM_Data
 );
 
     /*      Estados     */
@@ -211,6 +211,6 @@ module debug_control    #(
     //assign      step_flag       =       step_flag_reg   ;
     assign      send_flag       =       send_flag_reg   ;
     assign      enable          =       enable_reg      ;
-    assign      o_rst           =       o_reset_reg     ;
+    assign      o_reset         =       o_reset_reg     ;
     
 endmodule

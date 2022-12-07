@@ -17,7 +17,7 @@ module debug_control_tb();
     wire    enable      ,           o_reset     ,
             send_flag   ,           IM_We       ;
     wire    [IM_ADDR_LENGTH-1:0]    IM_Addr     ;
-    wire    [INST_WIDTH-1:0]        DM_Addr     ;
+    wire    [INST_WIDTH-1:0]        IM_Data     ;
     
 initial begin
         $dumpfile("dump.vcd"); $dumpvars;
@@ -46,8 +46,17 @@ initial begin
         
         #5
         rx_done     =       0       ;
+        rx_Data     =       32'h10001000    ;
+        
         #5
         rx_done     =       1       ;
+        send_done   =       0       ;
+        
+        #30
+        send_done   =       1       ;
+        
+        #20
+        halt_flag   =       1       ;
         #55
         halt_flag   =       0       ;
 
@@ -62,9 +71,9 @@ initial begin
     end
     
     debug_control   #(
-        .IM_ADDR_LENGTH         (IM_ADDR_LENGTH)    ,
-        .INST_WIDTH             (INST_WIDTH)        ,
-        .NBITS                  (NBITS)
+        .IM_ADDR_LENGTH     (IM_ADDR_LENGTH)    ,
+        .INST_WIDTH         (INST_WIDTH)        ,
+        .NBITS              (NBITS)
     )DEBUGDEBUGCTRL
     (
         .clk                (i_clk)             ,
@@ -73,8 +82,11 @@ initial begin
         .rx_done            (rx_done)           ,
         .send_done          (send_done)         ,
         .halt_flag          (halt_flag)         ,
+        .enable             (enable)            ,
+        .o_reset            (o_reset)           ,
+        .send_flag          (send_flag)         ,
         .IM_We              (IM_We)             ,
         .IM_Addr            (IM_Addr)           ,
-        .DM_Addr            (DM_Addr)
+        .IM_Data            (IM_Data)
     );
 endmodule
