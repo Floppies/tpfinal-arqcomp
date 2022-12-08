@@ -13,16 +13,15 @@ module mips_full    #(
     parameter   RBITS               =       5       ,
     parameter   BANK_SIZE           =       32      ,
     parameter   REG_WIDTH           =       32      ,
-    //  Parametros para UART
-    parameter   SB_TICK             =       16      ,   //TENGO QUE CAMBIAR ??
-    parameter   BAUD_DIV            =       163     ,
-    parameter   BAUD_SIZ            =       8       ,
+    //  Parametros para la info que viene de la unidad de UART
     parameter   NBITS               =       32
 )
 (
     input   wire    clk         ,       rst         ,
-    input   wire                        rx          ,
-    output  wire                        tx
+    input   wire    rx_done     ,       tx_done     ,
+    input   wire    [NBITS-1:0]         rx_Data     ,
+    output  wire                        tx_start    ,
+    output  wire    [NBITS-1:0]         tx_Data
 );
 
     /*      Señales auxiliares      */
@@ -49,11 +48,7 @@ module mips_full    #(
     wire                                IM_We_DU    ;
     wire    [RBITS-1:0]                 RB_Addr_DU  ;
     wire    [DM_ADDR_LENGTH-1:0]        DM_Addr_DU  ;
-    wire                                enable      ;
     wire        o_clock         ,       o_rst       ;
-    
-    //  Clock Wizard
-    wire        clk_out1        ,       locked      ;
     
     //  Memorias
     wire    [IM_ADDR_LENGTH-1:0]        IM_Addr     ;
@@ -110,24 +105,25 @@ module mips_full    #(
         .RBITS              (RBITS)             ,
         .BANK_SIZE          (BANK_SIZE)         ,
         .REG_WIDTH          (REG_WIDTH)         ,
-        .SB_TICK            (SB_TICK)           ,
-        .BAUD_DIV           (BAUD_DIV)          ,
-        .BAUD_SIZ           (BAUD_SIZ)          ,
         .NBITS              (NBITS)
     )DEBUGUNIT
     (
         .clk                (clk_out1)          ,
         .rst                (locked)            ,
-        .rx                 (rx)                ,
-        .tx                 (tx)                ,
         .halt_flag          (halt_flag)         ,
         .current_pc         (IM_Addr_MIPS)      ,
+        .RB_Data            (data2)             ,
+        .DM_Data            (DM_readData)       ,
+        .rx_Data            (rx_Data)           ,
+        .tx_Data            (tx_Data)           ,
+        .rx_done            (rx_done)           ,
+        .tx_done            (tx_done)           ,
+        .tx_start           (tx_start)          ,
         .IM_Addr            (IM_Addr_DU)        ,
         .IM_Data            (IM_Data_DU)        ,
         .IM_We              (IM_We_DU)          ,
         .RB_Addr            (RB_Addr_DU)        ,
         .DM_Addr            (DM_Addr_DU)        ,
-        .enable             (enable)            ,
         .o_clock            (o_clock)           ,
         .o_rst              (o_rst)
     );
@@ -179,14 +175,6 @@ module mips_full    #(
         .size_control       (DM_SizeCtrl)       ,
         .i_Data             (DM_Data)           ,
         .o_Data             (DM_readData)
-    );
-    
-    clk_wiz_0   CLKCLK
-    (
-        .clk_out1           (clk_out1)          ,
-        .reset              (rst)               ,
-        .locked             (locked)            ,
-        .clk_in1            (clk)
     );
     
 endmodule
