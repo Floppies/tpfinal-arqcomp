@@ -80,40 +80,44 @@ module send_control #(
         case    (state_reg)
             WAIT:
                 begin
-                    tx_data_next    =       0       ;
+                    //tx_data_next    =       0       ;
                     dm_addr_next    =       0       ;
                     rb_addr_next    =       0       ;
                     send_done_next  =       0       ;
-                    if  (send_flag)
+                    if  (send_flag && !send_done_reg)
                         begin
-                            tx_start_next   =   1       ;
-                            state_next      =   SENDPC  ;
+                            tx_start_next   =   1           ;
+                            tx_data_next    =   current_pc  ;
+                            state_next      =   SENDPC      ;
                         end
                     else
                         begin
-                            tx_start_next   =   0       ;
-                            state_next      =   WAIT    ;
+                            tx_start_next   =   0           ;
+                            tx_data_next    =   0           ;
+                            state_next      =   WAIT        ;
                         end
                 end
             SENDPC:
                 begin
-                    tx_data_next    =       current_pc  ;
+                    //tx_data_next    =       current_pc  ;
                     dm_addr_next    =       0           ;
                     rb_addr_next    =       0           ;
                     send_done_next  =       0           ;
                     tx_start_next   =       1           ;
                     if  (tx_done)
                         begin
-                            state_next      =       SENDDM  ;
+                            tx_data_next    =   DM_Data     ;
+                            state_next      =   SENDDM      ;
                         end
                     else
                         begin
-                            state_next      =       SENDPC  ;
+                            tx_data_next    =   current_pc  ;
+                            state_next      =   SENDPC      ;
                         end
                 end
             SENDDM:
                 begin
-                    tx_data_next    =       DM_Data     ;
+                    //tx_data_next    =       DM_Data     ;
                     rb_addr_next    =       0           ;
                     send_done_next  =       0           ;
                     tx_start_next   =       1           ;
@@ -123,23 +127,26 @@ module send_control #(
                             if  (DM_Data    ==  32'hFFFFFFFF)
                                 begin
                                     dm_addr_next    =   0       ;
+                                    tx_data_next    =   RB_Data ;
                                     state_next      =   SENDRB  ;
                                 end
                             else
                                 begin
                                     dm_addr_next    =   dm_addr_reg + 1 ;
+                                    tx_data_next    =   DM_Data         ;
                                     state_next      =   SENDDM          ;
                                 end
                         end
                     else
                         begin
                             dm_addr_next    =   dm_addr_reg ;
+                            tx_data_next    =   DM_Data     ;
                             state_next      =   SENDDM      ;
                         end
                 end
             SENDRB:
                 begin
-                    tx_data_next    =       RB_Data     ;
+                    //tx_data_next    =       RB_Data     ;
                     dm_addr_next    =       0           ;
                     send_done_next  =       0           ;
                     tx_start_next   =       1           ;
@@ -147,24 +154,27 @@ module send_control #(
                         begin
                             if  (RB_Data    ==  32'hFFFFFFFF)
                                 begin
-                                    rb_addr_next    =   0       ;
-                                    state_next      =   SENDCLK ;
+                                    rb_addr_next    =   0           ;
+                                    tx_data_next    =   clock_count ;
+                                    state_next      =   SENDCLK     ;
                                 end
                             else
                                 begin
                                     rb_addr_next    =   rb_addr_reg + 1 ;
+                                    tx_data_next    =   RB_Data         ;
                                     state_next      =   SENDRB          ;
                                 end
                         end
                     else
                         begin
                             rb_addr_next    =   rb_addr_reg ;
+                            tx_data_next    =   RB_Data     ;
                             state_next      =   SENDRB      ;
                         end
                 end
             SENDCLK:
                 begin
-                    tx_data_next    =       clock_count ;
+                    //tx_data_next    =       clock_count ;
                     dm_addr_next    =       0           ;
                     rb_addr_next    =       0           ;
                     if  (tx_done)

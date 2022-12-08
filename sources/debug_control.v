@@ -205,7 +205,7 @@ module debug_control    #(
     end
     
     //  Salidas
-    assign      IM_Addr         =       im_addr_reg     ;
+    assign      IM_Addr         =       im_addr_reg - 1 ;
     assign      IM_Data         =       im_data_reg     ;
     assign      IM_We           =       im_we_reg       ;
     //assign      step_flag       =       step_flag_reg   ;

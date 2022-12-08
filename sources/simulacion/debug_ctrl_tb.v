@@ -1,4 +1,4 @@
-`timescale 100ns / 100ps
+`timescale 10ns / 10ps
 
 module debug_ctrl_tb();
 
@@ -40,9 +40,9 @@ initial begin
         //Stores normales
         i_clk       =       1       ;
         i_rst       =       1       ;
-        rx_Data     =       32'h23  ;
-        RB_Data     =       32'h45  ;
-        DM_Data     =       32'h7F  ;
+        rx_Data     =       32'h0   ;
+        RB_Data     =       32'h452 ;
+        DM_Data     =       32'h0   ;
         rx_done     =       0       ;
         halt_flag   =       0       ;
         tx_done     =       0       ;
@@ -51,16 +51,23 @@ initial begin
         
         #20
         i_rst       =       0       ;
+        rx_Data     =       32'hFF  ;           // Primera Instruccion
         
         #10
-        rx_Data     =       32'hFF  ;           // Primera Instruccion
         rx_done     =       1       ;
         
         #10
         rx_done     =       0       ;
+        rx_Data     =       32'h23  ;           //  Segunda Instruccion
         
         #10
-        rx_Data     =       32'h0F  ;           //  Segunda Instruccion
+        rx_done     =       1       ;
+        
+        #10
+        rx_done     =       0       ;
+        rx_Data     =       32'h789 ;           //  Tercera Instruccion
+        
+        #10
         rx_done     =       1       ;
         
         #10
@@ -68,7 +75,6 @@ initial begin
         rx_Data     =       32'hFFFFFFFF    ;   //  Ultima instruccion
         
         #10
-        
         rx_done     =       1       ;
         
         //  RECVMODE
@@ -109,14 +115,14 @@ initial begin
         
         #10
         tx_done     =       1       ;
-        RB_Data     =       32'h00  ;
+        RB_Data     =       32'h85  ;
         
         #10
         tx_done     =       0       ;
+        RB_Data     =       32'hFFFFFFFF    ;   //  Ultimo registro
         
         #10
         tx_done     =       1       ;
-        RB_Data     =       32'hFFFFFFFF    ;   //  Ultimo registro
         
         //  SENDCLK
         #10
@@ -127,6 +133,7 @@ initial begin
         
         //  RECVMODE
         #10
+        tx_done     =       0       ;
         rx_done     =       0       ;
         
         #40
@@ -172,10 +179,10 @@ initial begin
 
         #10
         tx_done     =       0       ;
+        RB_Data     =       32'hFFFFFFFF    ;   //  Ultimo registro
         
         #10
         tx_done     =       1       ;
-        RB_Data     =       32'hFFFFFFFF    ;   //  Ultimo registro
         
         //  SENDCLK
         #10
