@@ -1,4 +1,4 @@
-`timescale 10ns / 10ps
+`timescale 100ns / 100ps
 
 module debug_ctrl_tb();
 
@@ -53,21 +53,22 @@ initial begin
         i_rst       =       0       ;
         
         #10
-        rx_Data     =       32'hFF  ;
+        rx_Data     =       32'hFF  ;           // Primera Instruccion
         rx_done     =       1       ;
         
         #10
         rx_done     =       0       ;
         
         #10
-        rx_Data     =       32'h0F  ;
+        rx_Data     =       32'h0F  ;           //  Segunda Instruccion
         rx_done     =       1       ;
         
         #10
         rx_done     =       0       ;
+        rx_Data     =       32'hFFFFFFFF    ;   //  Ultima instruccion
         
         #10
-        rx_Data     =       32'hFFFFFFFF    ;
+        
         rx_done     =       1       ;
         
         //  RECVMODE
@@ -78,14 +79,14 @@ initial begin
         #10
         rx_done     =       1       ;
         
-        //  RUNSTEP
+        //  RUNPROG
         #10
         rx_done     =       0       ;
         //  SENDPC
         #10
         tx_done     =       0       ;
         
-        #10
+        #20
         tx_done     =       1       ;
         
         // SENDDM
@@ -97,6 +98,7 @@ initial begin
         
         #10
         tx_done     =       0       ;
+        DM_Data     =       32'hFFFFFFFF    ;   //  Ultimo espacio de memoria
         
         #10
         tx_done     =       1       ;
@@ -114,7 +116,7 @@ initial begin
         
         #10
         tx_done     =       1       ;
-        RB_Data     =       32'hFFF  ;
+        RB_Data     =       32'hFFFFFFFF    ;   //  Ultimo registro
         
         //  SENDCLK
         #10
@@ -140,6 +142,7 @@ initial begin
         //  SENDPC
         #10
         tx_done     =       0       ;
+        current_PC  =       32'hFFF ;
         
         #10
         tx_done     =       1       ;
@@ -147,15 +150,18 @@ initial begin
         // SENDDM
         #10
         tx_done     =       0       ;
+        DM_Data     =       32'hFFF ;
         
         #10
         tx_done     =       1       ;
         
         #10
         tx_done     =       0       ;
+        DM_Data     =       32'hFFFFFFFF    ;   //  Ultimo espacio de memoria
         
         #10
         tx_done     =       1       ;
+        RB_Data     =       32'h00  ;
         
         //  SENDRB
         #10
@@ -163,14 +169,13 @@ initial begin
         
         #10
         tx_done     =       1       ;
-        RB_Data     =       32'h00  ;
-        
+
         #10
         tx_done     =       0       ;
         
         #10
         tx_done     =       1       ;
-        RB_Data     =       32'hFFF  ;
+        RB_Data     =       32'hFFFFFFFF    ;   //  Ultimo registro
         
         //  SENDCLK
         #10

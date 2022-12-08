@@ -52,7 +52,8 @@ module debug_controller #(
         .o_reset            (o_rst)             ,
         //.step_flag          (step_flag)         ,
         .send_flag          (send_flag)         ,
-        .IM_we              (IM_We)             ,
+        .IM_We              (IM_We)             ,
+        .IM_Data            (IM_Data)           ,
         .IM_Addr            (IM_Addr)
     );
     
