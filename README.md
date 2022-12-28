@@ -1,5 +1,35 @@
-# tpfinal-arqcomp
+# TP Final - ArqComp
 Desarrollo del TP Final de Arquitectura de Computadoras
+
+# Table of contents
+- [TP Final - ArqComp](#tp-final---arqcomp)
+- [Table of contents](#table-of-contents)
+  - [Consigna](#consigna)
+  - [Requerimientos](#requerimientos)
+    - [Etapas a implementar](#etapas-a-implementar)
+    - [Instrucciones a implementar](#instrucciones-a-implementar)
+    - [Riesgos](#riesgos)
+    - [Debug Unit](#debug-unit)
+    - [Otros Requerimientos](#otros-requerimientos)
+  - [Diseño del MIPS](#diseño-del-mips)
+    - [Módulos especiales](#módulos-especiales)
+      - [Registros de etapas](#registros-de-etapas)
+      - [Unidad de Control (Control Unit)](#unidad-de-control-control-unit)
+      - [Unidad de Cortocircuito (Forwarding Unit)](#unidad-de-cortocircuito-forwarding-unit)
+      - [Hazard Detection Unit](#hazard-detection-unit)
+      - [Módulos con modificaciones especiales para ciertas instrucciones](#módulos-con-modificaciones-especiales-para-ciertas-instrucciones)
+    - [Solución de Riesgos](#solución-de-riesgos)
+      - [Riesgos RAW (LDE)](#riesgos-raw-lde)
+      - [Riesgos de Control](#riesgos-de-control)
+  - [Diseño de la Debug Unit](#diseño-de-la-debug-unit)
+    - [Debug Controller](#debug-controller)
+    - [Send Controller](#send-controller)
+  - [Diseño Completo](#diseño-completo)
+  - [Testing](#testing)
+    - [Testeo de instrucciones especiales](#testeo-de-instrucciones-especiales)
+    - [Testeo de riesgos solucionados](#testeo-de-riesgos-solucionados)
+    - [Análisis de Tiempo](#análisis-de-tiempo)
+  - [Bibliografía](#bibliografía)
 
 ## Consigna
 
@@ -150,87 +180,97 @@ Esta unidad controla la inserción de "burbujas" para evitar riesgos RAW que sur
 
 ### Solución de Riesgos
 
+#### Riesgos RAW (LDE)
 
+Estos riesgos son solucionados mediante dos métodos:
+- Forwarding o corto-circuito: Cuando una instrucción de tipo I o R en el que los rt o rs correspondan a un rd de una instrucción precedente que no sea un LOAD (es decir que ya tenga su resultado en la etapa EX) la unidad de cortocircuito trae los datos necesarios para evitar detener el pipeline o tener datos incoherentes.
+- Stalls y burbujas: Cuando una intrucción tipo I o R cuyo rs o rt depende de un rd modificado por un Load precedente, se tiene que "parar" el pipeline e introduciendo una burbuja. El dato necesitado del Load se encuentre en la etapa MEM.
 
+El siguente es un ejemplo:
 
+```assembly
+...
+lw r1, 0(r2)
+sub r2, r1, r3
+add r2, r1, r4
+...
+```
 
+<img src="imagenes/load_example.PNG" alt="Ejemplo load" width="800"/>
 
+En esta situación, en el tercer ciclo la instrucción **sub** va a usar el registro r1 modificado por el **lw** pero este dato recién va a estar listo en el siguiente ciclo cuando **lw** este en la etapa de MEM. Por ende, este diseño retiene a la instrucción **sub** en la etapa ID, el PC no sigue a la siguiente instrucción y, en la etapa EX se inserta una burbuja, es decir una instrucción que no haga nada. Por ende, cada load retrasa el pipeline un ciclo.
 
+#### Riesgos de Control
 
+Estos riesgos surgen cuando hay un salto en el código, como en el siguiente ejemplo:
 
+```assembly
+...
+sub r2, r3, r4
+beq r1, r2, loop
+add r4, r5 ,r6
 
+loop:
+xor r3,r4,r5
+...
+```
 
-### Memoria de Programa
+<img src="imagenes/jump_example.PNG" alt="Ejemplo jump" width="800"/>
 
-Esta implementada como una memoria ROM de palabras de 16 bits y un espacio de direccion de 11 bits(2K Words).
+En este caso, la instrucción **beq** indica que, si r1 y r2 son iguales, la próxima instrucción que debe ejecutarse con es el **add** siguiente sino el **xor** que esta en la etiqueta **loop**. En este diseño, **beq** puede detectar el salto en el segundo ciclo, cuando esta en la etapa ID. Los pasos que se toma en este punto, el ciclo 3, es que para el próximo ciclo se haga un "flush" en la etapa ID (es decir que se quiten todos los datos de la instrucción **add** que ya no tiene que ser ejecutada) y que se elija la instrucción correcta, el **xor**. En consecuencia de esto, entre la instrucción **beq** y **xor** va a haber un burbuja. Por ende, cada salto retrasa el pipeline un ciclo.
 
-<img src="imagenes/EsquematicoPMROM.PNG" alt="PMROM schematic" width="400"/>
+## Diseño de la Debug Unit
 
-### Memoria de Datos
+INSERTAR DIAGRAMA DE BLOQUES DEL DISEÑO
 
-Esta implementada como una memoria RAM de palabras de 16 bits y un espacio de direccion de 11 bits(2K Words). Su lectura y escritura son sincronas al clock.
+La unidad de Debuggeo consiste de 3 módulos:
+- Debug Controller: Es la máquina de estados principal que se encarga de recibir el programa, recibir el modo de operación, correr el programa e iniciar el envió de datos.
+- Send Controller: Es una máquina de estados secundaria que se encarga de mandar todos los datos requeridos y al finalizar enviar una señal al Debug Controller.
+- Clock Control: Se encarga de contar todos los ciclos de clock en los cuales el procesador está funcionando y de darle el pulso de trabajo.
 
-<img src="imagenes/EsquematicoDMRAM.PNG" alt="DMRAM schematic" width="400"/>
+*La unidad de UART que se encarga de recibir y enviar los datos está separada de toda esta lógica y es exactamente igual que la realizada en el segundo trabajo práctico de la materia.*
 
-### Modulo UART
+### Debug Controller
 
-Es el mismo modulo implementado en el TP2 aunque sin el receptor. El Baudrate es de 9600 para un reloj de 50MHz. 
+INSERTAR DIAGRAMA DE ESTADOS
 
-<img src="imagenes/EsquematicoUART.PNG" alt="UART schematic" width="800"/>
+Los estados son los siguientes:
+- E0 - RECVPROG - 0001 : Recibiendo el programa. Este mismo es enviado en líneas de 32 bits. Se sale de este estado al recibir la última instrucción que debería ser una HALT.
+- E1 - RECVMODE - 0010 : Recibe el comando para saber el modo de operación que desea el usuario. Este puede ser Paso a Paso (cuando recibo un 32h10001000) o Continuo (cuando recibo cualquier otro dato).
+- E2 - RUNPROG - 0100 : El procesador empieza a funcionar ya sea por un ciclo o hasta llegar a la instrucción HALT.
+- E3 - SENDDATA - 1000 : Se levanta una flag para que el Send Controller empiece a enviar los datos. Cuando este responde una señal de que el envió terminó, se vuelve al estado inicial.
 
-### Clocking Wizard
+El diagrama del módulo es el siguiente:
 
-Se usa este modulo para tener mayor control en la señal de clock que va a ingresar a los modulos. El parametro que se especifico fue solamente la frecuencia del clock pero se puede jugar con el jitter, los delays, etc. Se setea la salida a 50MHz.
+INSERTAR DIAGRAMA DE BLOQUE
 
-Como necesita un tiempo para estabilizar, hay una señal llamada locked que señala cuando la salida del Clock Wizard es estable. Se toma esta señal como un reset para el resto del circuito. En este caso tarda mas o menos 500 ns.
+### Send Controller
 
-<img src="imagenes/LockedCW.PNG" alt="Clocking Wizard" width="800"/>
+INSERTAR DIAGRAMA DE ESTADOS
+
+Los estados son los siguientes:
+- E0 - WAIT - 00001 : La máquina de estado está a la espera de que el Debug Controller levanta la flag para enviar los datos.
+- E1 - SENDPC - 00010 : Se envía el contenido del registro PC, es decir la dirección de la última instrucción ejecutada.
+- E2 - SENDDM - 00100 : Se envía todo el contenido de la memoria de datos.
+- E3 - SENDRB - 01000 : Se envía todo el contenido de la memoria de datos.
+- E4 - SENDCLK - 10000 : Se envía la cantidad de clocks que guarda el Clock Control.
+
+El diagrama del módulo es el siguiente:
+
+INSERTAR DIAGRAMA DE BLOQUE
+
+## Diseño Completo
+
+INSERTAR EL DIAGRAMA CON TODOS LOS MODULOS
 
 ## Testing
 
-Se hicieron varios testbench para probar la funcionalidad de cada modulo en particular. Todos estos tienen una metodologia no automatizada y son bastante simples de entender. Luego se realizo un testbench del sistema completo.
+### Testeo de instrucciones especiales
 
-### Testing completo
+### Testeo de riesgos solucionados
 
-Para el test completo se redujeron los tamaños de las memorias por simplicidad. Ambas tienen solo 9 lugares (son paramatrizables). El programa que se utilizo para la prueba es el siguente.
+### Análisis de Tiempo
 
-``` v
-0001100000000100 //LDI 4
-0010100000000001 //ADDI 1
-0011100000000010 //SUBI 2
-0000100000000000 //STO 0
-0010000000000000 //ADD 0
-0000100000000001 //STO 1
-0011000000000000 //SUB 0
-0001000000000001 //LD 1
-0000000000000000 //HLT
-```
-El dato que se deberia enviar al ultimo es h0006.
+## Bibliografía
 
-## Analisis
-
-### Simulación de comportamiento
-
-Se puede observar como las instrucciones son terminadas en un solo ciclo de Clock. En el flanco de subida se ingresa la nueva instruccion y los valores de las memorias; y en el flanco de bajada se actualiza el valor del acumulador (o_Data). Ademas, se denota que el acumulador actualiza sus valores correctamente segun lo que esta en el programa de prueba.
-
-<img src="imagenes/SimBehavInst.png" alt="Simulacion del comportamiento, monociclo" width="1000"/>
-
-Aqui se puede visualizar que, una vez terminado el procesamiiento del programa entero y se llega a la instruccion HALT, se manda la se;al tx_done al transmisor UART y este transmite el valor del acumulador (en este caso un h0006).
-
-<img src="imagenes/SimBehavUART.PNG" alt="Simulacion del comportamiento, UART" width="800"/>
-
-### Simulación Post-Sintesis con tiempo
-
-Se ve el mismo resultado del procesamiento de instruccion. Hay mas ruido en la entrada de datos que vienen desde la ROM pero, como todo esta sincronizado al clock y los cambios del pc y acumuludar se hacen en el flanco de bajada donde los datos ya estan estables, no hay errores en los calculos. Se obvio la transmision de la señal por el UART ya que toma mucho mas tiempo en comparacion a los otros procesos.
-
-<img src="imagenes/SimTim.PNG" alt="Simulacion con timing" width="800"/>
-
-### Analisis de Timing
-
-En el analisis de Timing se ve que se cumplen las constraints para una frecuencia de 50MHz.
-
-<img src="imagenes/AnalisisTiming.PNG" alt="Analisis de timing" width="800"/>
-
-El resultado de Worst Negative Slack denota cual es la frecuencia maxima que se puede utilizar en este diseño. La frecuencia máxima es 73 MHz, aproximadamente. El calculo es el siguiente:
-
-<img src="imagenes/MaxFreq.PNG" alt="Frecuencia Maxima" width="400"/>
+ACA HAY QUE PONER LINKS
