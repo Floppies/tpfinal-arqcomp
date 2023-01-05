@@ -1,9 +1,9 @@
 # TP Final - ArqComp
 Desarrollo del TP Final de Arquitectura de Computadoras
 
-# Table of contents
+## Table of contents
 - [TP Final - ArqComp](#tp-final---arqcomp)
-- [Table of contents](#table-of-contents)
+  - [Table of contents](#table-of-contents)
   - [Consigna](#consigna)
   - [Requerimientos](#requerimientos)
     - [Etapas a implementar](#etapas-a-implementar)
@@ -232,7 +232,7 @@ La unidad de Debuggeo consiste de 3 módulos:
 
 ### Debug Controller
 
-INSERTAR DIAGRAMA DE ESTADOS
+<img src="imagenes/debug_control_states.PNG" alt="debug control" width="800"/>
 
 Los estados son los siguientes:
 - E0 - RECVPROG - 0001 : Recibiendo el programa. Este mismo es enviado en líneas de 32 bits. Se sale de este estado al recibir la última instrucción que debería ser una HALT.
@@ -246,7 +246,7 @@ INSERTAR DIAGRAMA DE BLOQUE
 
 ### Send Controller
 
-INSERTAR DIAGRAMA DE ESTADOS
+<img src="imagenes/send_control_states.PNG" alt="send control" width="800"/>
 
 Los estados son los siguientes:
 - E0 - WAIT - 00001 : La máquina de estado está a la espera de que el Debug Controller levanta la flag para enviar los datos.
@@ -261,7 +261,15 @@ INSERTAR DIAGRAMA DE BLOQUE
 
 ## Diseño Completo
 
-INSERTAR EL DIAGRAMA CON TODOS LOS MODULOS
+El Diagrama completo esta formado por:
+
+- El MIPS segmentado. (En este diagrama esta señalizado con el color verde y esta simplificado).
+- Las memorias, señalizadas en el diagrama con el color magenta. Son 2 memorias RAM que incluyen a la memoria de instrucciones y la memoria de datos, y el banco de registros.
+- La unidad UART de color amarillo. Son los mismos módulos usados en el Trabajo N2.
+- La Debug Unit en color azul. Consta del módulo de Control del debugging, la unidad que controla el envio y el control del clock.
+- También, en color violeta, está el módulo Clock Wizard.
+
+<img src="imagenes/Diagrama_Completo.JPG" alt="Diagrama completo" width="800"/>
 
 ## Testing
 
