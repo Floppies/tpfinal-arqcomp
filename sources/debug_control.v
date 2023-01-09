@@ -14,7 +14,6 @@ module debug_control    #(
                                         send_done   ,
     /*  Salidas     */
     output  wire    enable      ,       o_reset     ,
-                    //step_flag   ,       send_flag   ,
                                         send_flag   ,
                                         IM_We       ,
     output  wire    [IM_ADDR_LENGTH-1:0]IM_Addr     ,
@@ -22,15 +21,15 @@ module debug_control    #(
 );
 
     /*      Estados     */
-    localparam[1:0]
-        RECVPROG        =       2'b00           ,   //  Recibiendo el programa
-        RECVMODE        =       2'b01           ,   //  Recibiendo el modo de operacion
-        RUNPROG         =       2'b10           ,   //  Correr Programa (Modo Continuo)
-        SENDDATA        =       2'b11           ;   //  Mandando todos los datos
+    localparam[3:0]
+        RECVPROG        =       4'b0001         ,   //  Recibiendo el programa
+        RECVMODE        =       4'b0010         ,   //  Recibiendo el modo de operacion
+        RUNPROG         =       4'b0100         ,   //  Correr Programa (Modo Continuo)
+        SENDDATA        =       2'b1000         ;   //  Mandando todos los datos
         
-    /*      Señales auxiliares   */
+    /*      Seï¿½ales auxiliares   */
 
-    reg     [1:0]   state_reg   ,   state_next  ;
+    reg     [3:0]   state_reg   ,   state_next  ;
     
     //  auxs de salidas
     reg     [IM_ADDR_LENGTH-1:0]    im_addr_reg     ,   im_addr_next    ;

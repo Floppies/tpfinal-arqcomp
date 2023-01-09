@@ -93,7 +93,7 @@ El funcionamiento de la Debug Unit consiste en:
 
 El diseño del pipeline final con las cinco etapas es el siguiente:
 
-<img src="imagenes/MIPS_Diagram.JPG" alt="Diagrama MIPS" width="800"/>
+<img src="imagenes/MIPS_Diagram.jpg" alt="Diagrama MIPS" width="800"/>
 
 En este diseño estan contempladas todas las instrucciones requeridas y se han resuelto todos los riesgos.
 
@@ -111,13 +111,13 @@ Los registros IF/ID, ID/EX, EX/MEM y MEM/WB sirven para guardar todos los datos 
 
 En esta unidad se decodifica la instruccion. Consiste de una series de señales que actuan como flags y que manejan el control de todas las instrucciones.
 
-<img src="imagenes/Control_unit.PNG" alt="Modulo Control Unit" width="800"/>
+<img src="imagenes/Control_Unit.PNG" alt="Modulo Control Unit" width="800"/>
 
 Las señales de control significan lo siguiente:
 - Halt: Bandera que señala que llego una instrucción HALT por ende el procesador se tiene que detener cuando ésta llegue a la última etapa.
 - SizeControl: Es una señal de 5 bits que controla las funciones Store y Load en la memoria de datos.
 
-<img src="imagenes/Size_control.PNG" alt="Funcionamientos SizeControl" width="800"/>
+<img src="imagenes/Size_control.jpg" alt="Funcionamientos SizeControl" width="200"/>
 
 - BNE: Bandera que levanta una instrucción BNE (Branch Not Equal).
 - BEQ: Bandera que levanta una instrucción BEQ (Branch Equal).
@@ -140,7 +140,7 @@ ACA INSERTAR UNA TABLA O UNA IMAGEN CON LAS SEÑALES DE CONTROL
 
 Esta unidad controla los datos que van a ser los operandos de la instrucción que se encuentra en la etapa ID. Sirve para eliminar los reisgos RAW que se generan a utilizar un procesador segmentado.
 
-<img src="imagenes/Forwarding_unit.PNG" alt="Modulo Forwarding Unit" width="800"/>
+<img src="imagenes/Forwarding_unit.PNG" alt="Modulo Forwarding Unit" width="400"/>
 
 Dependiendo de ciertas señales de control, las salidas de esta unidad son selectores de multiplexores que eligen cuales seran los Rs y Rt. Las opciones son los registros que salen del banco, los datos de la etapa EX, MEM o WB. La lógica es la siguiente:
 
@@ -150,7 +150,7 @@ ACA INSERTAR LA TABLA DE DECISIONES
 
 Esta unidad controla la inserción de "burbujas" para evitar riesgos RAW que surgen por las instrucciones LOAD.
 
-<img src="imagenes/Hazard_detection_unit.PNG" alt="Modulo Hazard Detection Unit" width="800"/>
+<img src="imagenes/Hazard_detection_unit.PNG" alt="Modulo Hazard Detection Unit" width="400"/>
 
  Mientras no se detecte ningún riesgo, el procesador funciona normalmente (writePC = 1). Cuando hay que esperar que se cargue un dato, se inserta la burbuja. Es decir que el PC no se actualiza al igual que todos los registros de IF/ID y los registros de ID/EX se cargan con 0s (burbuja).
 
@@ -196,7 +196,7 @@ add r2, r1, r4
 ...
 ```
 
-<img src="imagenes/load_example.PNG" alt="Ejemplo load" width="800"/>
+<img src="imagenes/load_example.PNG" alt="Ejemplo load" width="400"/>
 
 En esta situación, en el tercer ciclo la instrucción **sub** va a usar el registro r1 modificado por el **lw** pero este dato recién va a estar listo en el siguiente ciclo cuando **lw** este en la etapa de MEM. Por ende, este diseño retiene a la instrucción **sub** en la etapa ID, el PC no sigue a la siguiente instrucción y, en la etapa EX se inserta una burbuja, es decir una instrucción que no haga nada. Por ende, cada load retrasa el pipeline un ciclo.
 
@@ -215,7 +215,7 @@ xor r3,r4,r5
 ...
 ```
 
-<img src="imagenes/jump_example.PNG" alt="Ejemplo jump" width="800"/>
+<img src="imagenes/jump_example.PNG" alt="Ejemplo jump" width="400"/>
 
 En este caso, la instrucción **beq** indica que, si r1 y r2 son iguales, la próxima instrucción que debe ejecutarse con es el **add** siguiente sino el **xor** que esta en la etiqueta **loop**. En este diseño, **beq** puede detectar el salto en el segundo ciclo, cuando esta en la etapa ID. Los pasos que se toma en este punto, el ciclo 3, es que para el próximo ciclo se haga un "flush" en la etapa ID (es decir que se quiten todos los datos de la instrucción **add** que ya no tiene que ser ejecutada) y que se elija la instrucción correcta, el **xor**. En consecuencia de esto, entre la instrucción **beq** y **xor** va a haber un burbuja. Por ende, cada salto retrasa el pipeline un ciclo.
 
@@ -232,7 +232,7 @@ La unidad de Debuggeo consiste de 3 módulos:
 
 ### Debug Controller
 
-<img src="imagenes/debug_control_states.PNG" alt="debug control" width="800"/>
+<img src="imagenes/debug_cotrol_states.PNG" alt="debug control" width="800"/>
 
 Los estados son los siguientes:
 - E0 - RECVPROG - 0001 : Recibiendo el programa. Este mismo es enviado en líneas de 32 bits. Se sale de este estado al recibir la última instrucción que debería ser una HALT.
