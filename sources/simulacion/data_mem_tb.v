@@ -11,7 +11,7 @@ module data_mem_tb();
     //Entradas
     reg             i_clk   ,   i_rst       ,
                     We      ,   Re          ;
-    reg     [4:0]               size_ctrl   ;   
+    reg     [2:0]               size_ctrl   ;   
     reg     [ADDR_LENGTH-1:0]   i_Addr      ;
     reg     [DATA_LENGTH-1:0]   i_Data      ;
     
@@ -20,8 +20,12 @@ module data_mem_tb();
     
     initial begin
         $dumpfile("dump.vcd"); $dumpvars;
+        i_clk       =       0       ;
+        i_rst       =       0       ;
+        #10
+        i_rst       =       1       ;
         //Stores normales
-        i_clk       =       1       ;
+        #10
         We          =       1       ;
         i_Addr      =       0       ;   // Carga 1 en la direccion 0
         i_Data      =       1       ;
@@ -49,34 +53,33 @@ module data_mem_tb();
         i_Addr      =       2       ;
         i_Data      =       5       ;
         #10                             // unsigned load byte en la direccion 3
-        size_ctrl   =       5'b01000;
+        size_ctrl   =       3'b000  ;
         i_Addr      =       3       ;
         #10                             // unsigned load byte en la direccion 1
-        size_ctrl   =       5'b01000;
         i_Addr      =       1       ;
         #10                             // signed load byte en la direccion 3
-        size_ctrl   =       5'b01100;
+        size_ctrl   =       3'b100  ;
         i_Addr      =       3       ;
-        #10                     
-        size_ctrl   =       5'b01100;   // signed load byte en la direccion 1
+        #10                             // signed load byte en la direccion 1
         i_Addr      =       1       ;
         #10
-        size_ctrl   =       5'b10000;   // unsigned load halfword en la direccion 3
+        size_ctrl   =       3'b001  ;   // unsigned load halfword en la direccion 3
         i_Addr      =       3       ;
         #10
-        size_ctrl   =       5'b10100;   // signed  load halfword en la direccion 3
+        size_ctrl   =       3'b101  ;   // signed  load halfword en la direccion 3
         i_Addr      =       3       ;
         //Stores
         #10                             // store byte en la direccion 1
         We          =       1       ;
+        Re          =       0       ;
         i_Data      =       32'hFFFFFFFF;
-        size_ctrl   =       5'b00001;
+        size_ctrl   =       3'b000  ;
         i_Addr      =       1       ;
         #10                             // store halfword en la direccion 2
-        size_ctrl   =       5'b00010;
+        size_ctrl   =       3'b001  ;
         i_Addr      =       2       ;
         #10                             // store word en la direccion 4
-        size_ctrl   =       5'b00011;
+        size_ctrl   =       3'b010  ;
         i_Addr      =       4       ;
         #20
         $finish;
