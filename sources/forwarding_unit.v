@@ -12,8 +12,7 @@ module forwarding_unit  #(
     input   wire                    MEM_WB_regwrite ,
     //Salidas
     output  wire    [FBITS-1:0]     forward_A       ,
-    output  wire    [FBITS-1:0]     forward_B       ,
-    output  wire    [FBITS-1:0]     forward_J
+    output  wire    [FBITS-1:0]     forward_B
     );
     
     localparam  [FBITS-1:0]
