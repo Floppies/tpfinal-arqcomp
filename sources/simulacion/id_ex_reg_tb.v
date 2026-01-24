@@ -5,7 +5,7 @@ module id_ex_reg_tb();
     //Parametros
     localparam      NBITS       =   32      ;
     localparam      RBITS       =   5       ;
-    localparam      FBITS       =   10      ;
+    localparam      FBITS       =   4       ;
 
     //Entradas
     reg     [NBITS-1:0]     id_rs1      ,   id_rs2      ;
@@ -15,6 +15,8 @@ module id_ex_reg_tb();
     reg                     id_memtoreg ,   id_memread  ,
                             id_memwrite ,   id_alusource,
                             id_link     ,   id_regwrite ,
+                            id_jumpreg  ,   id_bne      ,
+                            id_beq      ,
                             i_clk       ,   i_rst       ,
                             id_ex_flush ,   we          ;
     reg     [2:0]           id_aluop    ;
@@ -26,6 +28,8 @@ module id_ex_reg_tb();
     wire    [FBITS-1:0]     ex_funct    ;
     wire                    ex_memtoreg ,   ex_memread  ,
                             ex_memwrite ,   ex_alusource,
+                            ex_jumpreg  ,   ex_bne      ,
+                            ex_beq      ,
                             ex_link     ,   ex_regwrite ;
     wire    [2:0]           ex_aluop    ;
 
@@ -47,6 +51,9 @@ module id_ex_reg_tb();
         id_memread  =   1'b1          ;
         id_memwrite =   1'b0          ;
         id_alusource=   1'b1          ;
+        id_jumpreg  =   1'b1          ;
+        id_bne      =   1'b0          ;
+        id_beq      =   1'b1          ;
         id_link     =   1'b0          ;
         id_regwrite =   1'b1          ;
         id_aluop    =   3'b100        ;
@@ -125,6 +132,9 @@ module id_ex_reg_tb();
         .ID_memtoreg    (id_memtoreg)   ,
         .ID_memread     (id_memread)    ,
         .ID_memwrite    (id_memwrite)   ,
+        .ID_JumpReg     (id_jumpreg)    ,
+        .ID_BEQ         (id_beq)        ,
+        .ID_BNE         (id_bne)        ,
         .ID_alusource   (id_alusource)  ,
         .ID_link        (id_link)       ,
         .ID_regwrite    (id_regwrite)   ,
@@ -140,6 +150,9 @@ module id_ex_reg_tb();
         .EX_alusource   (ex_alusource)  ,
         .EX_link        (ex_link)       ,
         .EX_regwrite    (ex_regwrite)   ,
+        .EX_JumpReg     (ex_jumpreg)    ,
+        .EX_BEQ         (ex_beq)        ,
+        .EX_BNE         (ex_bne)        ,
         .EX_aluop       (ex_aluop)
     );
 

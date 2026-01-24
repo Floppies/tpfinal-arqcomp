@@ -3,7 +3,7 @@
 module ALU_control_tb();
 
     //Local parameters
-    localparam      FBITS       =   10  ;
+    localparam      FBITS       =   4   ;
     localparam      OPBITS      =   2   ;
     localparam      CTRBITS     =   4   ;
 
@@ -18,51 +18,51 @@ module ALU_control_tb();
 
         // ALUOp = 00 -> ADD
         alu_op  =   2'b00;
-        i_funct =   10'b0;
+        i_funct =   4'b0;
         #10;
 
         // ALUOp = 01 -> SUB
         alu_op  =   2'b01;
-        i_funct =   10'b0;
+        i_funct =   4'b0;
         #10;
 
         // ALUOp = 11 -> LUI
         alu_op  =   2'b11;
-        i_funct =   10'b0;
+        i_funct =   4'b0;
         #10;
 
         // ALUOp = 10 -> funct3/funct7 (R/I-type)
         alu_op  =   2'b10;
 
         // ADD / ADDI (funct7=0000000, funct3=000)
-        i_funct =   {7'b0000000, 3'b000};
+        i_funct =   {1'b0, 3'b000};
         #10;
         // SUB (funct7=0100000, funct3=000)
-        i_funct =   {7'b0100000, 3'b000};
+        i_funct =   {1'b1, 3'b000};
         #10;
         // SLL / SLLI
-        i_funct =   {7'b0000000, 3'b001};
+        i_funct =   {1'b0, 3'b001};
         #10;
         // SLT / SLTI
-        i_funct =   {7'b0000000, 3'b010};
+        i_funct =   {1'b0, 3'b010};
         #10;
         // SLTU / SLTIU
-        i_funct =   {7'b0000000, 3'b011};
+        i_funct =   {1'b0, 3'b011};
         #10;
         // XOR / XORI
-        i_funct =   {7'b0000000, 3'b100};
+        i_funct =   {1'b0, 3'b100};
         #10;
         // SRL / SRLI
-        i_funct =   {7'b0000000, 3'b101};
+        i_funct =   {1'b0, 3'b101};
         #10;
         // SRA / SRAI
-        i_funct =   {7'b0100000, 3'b101};
+        i_funct =   {1'b1, 3'b101};
         #10;
         // OR / ORI
-        i_funct =   {7'b0000000, 3'b110};
+        i_funct =   {1'b0, 3'b110};
         #10;
         // AND / ANDI
-        i_funct =   {7'b0000000, 3'b111};
+        i_funct =   {1'b0, 3'b111};
         #10;
 
         $finish;

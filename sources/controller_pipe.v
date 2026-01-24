@@ -1,215 +1,109 @@
-//Definicion de Macros para las instrucciones
-`define Rtp     6'b000000
-`define Addi    6'b001000
-`define Andi    6'b001100
-`define Beq     6'b000100
-`define Bne     6'b000101
-`define J       6'b000010
-`define Jal     6'b000011
-`define Lb      6'b100000
-`define Lbu     6'b100100
-`define Lh      6'b100001
-`define Lhu     6'b100101
-`define Lui     6'b001111
-`define Lw      6'b100011
-`define Lwu     6'b100111
-`define Halt    6'b111111
-`define Ori     6'b001101
-`define Sb      6'b101000
-`define Sh      6'b101001
-`define Sw      6'b101011
-`define Slti    6'b001010
-`define Xori    6'b001110
+//Instruction type macros
+`define Rtp     7'b0110011
+`define Itp     7'b0010011
+`define Loads   7'b0000011
+`define Stores  7'b0100011
+`define Branch  7'b1100011
+`define Jal     7'b1101111
+`define Jarl    7'b1100111
+`define Lui     7'b0110111
+`define Halt    7'b1111111
 
 module controller_pipe  #(
-    //Parametros
-    parameter                       FBITS   =   6   ,
-    parameter                       INSBITS =   6
+    //Parameters
+    parameter                       NSBITS  =   8
     )
     (
-    //Entradas
-    input   wire    [INSBITS-1:0]   opcode          ,
-    input   wire    [FBITS-1:0]     i_funct         ,
-    //Salidas
+    //Inputs
+    input   wire    [NSBITS-1:0]    i_opcode        ,   //funct3[0],opcode
+    //Outputs
     output  reg                     Reg_write       ,
     output  reg                     ALU_source      ,
     output  reg                     Mem_write       ,
-    output  reg     [2:0]           ALU_op          ,
+    output  reg     [1:0]           ALU_op          ,
     output  reg                     Mem_to_Reg      ,
     output  reg                     Mem_read        ,
     output  reg                     BEQ_flag        ,
     output  reg                     BNE_flag        ,
     output  reg                     Jump_flag       ,
+    output  reg                     Jump_reg        ,
     output  reg                     Halt_flag       ,
-    output  reg     [1:0]           Reg_dst         ,
-    output  reg     [1:0]           Select_Addr     ,
-    output  reg     [4:0]           Size_control    ,
     output  reg                     Link_flag
     );
     
-    localparam  [FBITS-1:0]
-        JALR    =   6'b001001       ,
-        JR      =   6'b001000       ;
-    
+    wire                    funct3  =   i_opcode[NSBITS-1]  ;
+    wire    [NSBITS-2:0]    opcode  =   i_opcode[NSBITS-2:0];
+
     always @(*)
 	begin  :   control
         Reg_write       =   0       ;
         ALU_source      =   0       ;
         Mem_write       =   0       ;
-        ALU_op          =   3'b000  ;
+        ALU_op          =   2'b00   ;
         Mem_to_Reg      =   0       ;
         Mem_read        =   0       ;
         BEQ_flag        =   0       ;
         BNE_flag        =   0       ;
         Jump_flag       =   0       ;
-        Reg_dst         =   2'b00   ;
-        Select_Addr     =   2'b11   ;
-        Size_control    =   5'b00000;
+        Jump_reg        =   0       ;
         Link_flag       =   0       ;
+        Halt_flag       =   0       ;
         
         case(opcode)
-            `Rtp        :
-                begin   :   RType
-                    case(i_funct)
-                        JALR    :   begin
-                            Reg_write       =   1       ;
-                            ALU_source      =   1       ;
-                            Reg_dst         =   2'b10   ;
-                            Select_Addr     =   2'b10   ;
-                            Jump_flag       =   1       ;
-                            Link_flag       =   1       ;
-                        end
-                        JR      :   begin
-                            Jump_flag       =   1       ;
-                            Select_Addr     =   2'b10   ;
-                        end
-                        default :   begin
-                            Reg_write       =   1       ;
-                            Reg_dst         =   2'b10   ;
-                        end
-                    endcase
+            `Rtp        :   begin
+                Reg_write       =   1           ;
+                ALU_op          =   2'b10       ;
+                ALU_source      =   0           ;
+            end
+            `Itp        :   begin
+                Reg_write       =   1           ;
+                ALU_source      =   1           ;
+                ALU_op          =   2'b10       ;
+            end
+            `Loads      :   begin
+                Reg_write       =   1           ;
+                Mem_read        =   1           ;
+                Mem_to_Reg      =   1           ;
+                ALU_source      =   1           ;
+                ALU_op          =   2'b00       ;
+            end
+            `Stores     :   begin
+                Mem_write       =   1           ;
+                ALU_source      =   1           ;
+                ALU_op          =   2'b00       ;
+            end
+            `Branch     :   begin
+                ALU_op          =   2'b01       ;
+                ALU_source      =   0           ;
+                if  (funct3)
+                begin
+                    BNE_flag    =   1           ;
                 end
-            `Addi       :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b001      ;
-            end
-            `Andi       :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b010      ;
-            end
-            `Beq        :   begin
-                ALU_op          =   3'b110      ;
-                BEQ_flag        =   1           ;
-                Select_Addr     =   2'b01       ;
-            end
-            `Bne        :   begin
-                ALU_op          =   3'b110      ;
-                BNE_flag        =   1           ;
-                Select_Addr     =   2'b01       ;
-            end
-            `J          :   begin
-                Select_Addr     =   2'b00       ;
-                Jump_flag       =   1           ;
+                else
+                begin
+                    BEQ_flag    =   1           ;
+                end
             end
             `Jal        :   begin
                 Reg_write       =   1           ;
-                ALU_op          =   3'b001      ;
-                ALU_source      =   1           ;
                 Jump_flag       =   1           ;
-                Reg_dst         =   2'b01       ;
-                Select_Addr     =   2'b00       ;
                 Link_flag       =   1           ;
-            end
-            `Lb         :   begin
-                Reg_write       =   1           ;
                 ALU_source      =   1           ;
-                ALU_op          =   3'b001      ;
-                Mem_to_Reg      =   1           ;
-                Mem_read        =   1           ;
-                Size_control    =   5'b01100    ;
             end
-            `Lbu        :   begin
+            `Jarl       :   begin
                 Reg_write       =   1           ;
+                Jump_flag       =   1           ;
+                Jump_reg        =   1           ;
+                Link_flag       =   1           ;
                 ALU_source      =   1           ;
-                ALU_op          =   3'b001      ;
-                Mem_to_Reg      =   1           ;
-                Mem_read        =   1           ;
-                Size_control    =   5'b01000    ;
-            end
-            `Lh         :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b001      ;
-                Mem_to_Reg      =   1           ;
-                Mem_read        =   1           ;
-                Size_control    =   5'b10100    ;
-            end
-            `Lhu        :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b001      ;
-                Mem_to_Reg      =   1           ;
-                Mem_read        =   1           ;
-                Size_control    =   5'b10000    ;
-            end
-            `Lw         :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b001      ;
-                Mem_to_Reg      =   1           ;
-                Mem_read        =   1           ;
-                Size_control    =   5'b11100    ;
-            end
-            `Lwu        :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b001      ;
-                Mem_to_Reg      =   1           ;
-                Mem_read        =   1           ;
-                Size_control    =   5'b11000    ;
             end
             `Lui        :   begin
                 Reg_write       =   1           ;
                 ALU_source      =   1           ;
-                ALU_op          =   3'b111      ;
+                ALU_op          =   2'b11       ;
             end
             `Halt       :   begin
                 Halt_flag       =   1           ;
-            end
-            `Ori        :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b011      ;
-            end
-            `Sb         :   begin
-                ALU_source      =   1           ;
-                Mem_write       =   1           ;
-                ALU_op          =   3'b001      ;
-                Size_control    =   5'b00001    ;
-            end
-            `Sh         :   begin
-                ALU_source      =   1           ;
-                Mem_write       =   1           ;
-                ALU_op          =   3'b001      ;
-                Size_control    =   5'b00010    ;
-            end
-            `Sw         :   begin
-                ALU_source      =   1           ;
-                Mem_write       =   1           ;
-                ALU_op          =   3'b001      ;
-                Size_control    =   5'b00011    ;
-            end
-            `Slti       :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b101      ;
-            end
-            `Xori       :   begin
-                Reg_write       =   1           ;
-                ALU_source      =   1           ;
-                ALU_op          =   3'b100      ;
             end
         endcase
     end

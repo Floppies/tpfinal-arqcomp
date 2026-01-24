@@ -15,12 +15,12 @@
 `define F3_AND      3'b111
 
 // RISC-V funct7
-`define F7_ADD      7'b0000000
-`define F7_SUB      7'b0100000
+`define F7_ADD      1'b0
+`define F7_SUB      1'b1
 
 module ALU_Control #(
     //Parametros
-    parameter                       FBITS   =   10  ,
+    parameter                       FBITS   =   4   ,
     parameter                       OPBITS  =   2   ,
     parameter                       CTRBITS =   4
     )
@@ -46,7 +46,7 @@ module ALU_Control #(
         SRA     =   4'b1010     ,
         LUI     =   4'b1011     ;
 
-    wire    [6:0]   funct7 = i_funct[9:3];
+    wire            funct7 = i_funct[3];
     wire    [2:0]   funct3 = i_funct[2:0];
 
     always @(*)

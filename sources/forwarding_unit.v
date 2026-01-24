@@ -4,55 +4,47 @@ module forwarding_unit  #(
     )
     (
     //Entradas
-    input   wire    [RBITS-1:0]     IF_ID_rs        ,
-    input   wire    [RBITS-1:0]     IF_ID_rt        ,
-    input   wire    [RBITS-1:0]     ID_EX_rd        ,
+    input   wire    [RBITS-1:0]     IF_ID_rs1       ,
+    input   wire    [RBITS-1:0]     IF_ID_rs2       ,
     input   wire    [RBITS-1:0]     EX_MEM_rd       ,
     input   wire    [RBITS-1:0]     MEM_WB_rd       ,
-    input   wire                    ID_EX_regwrite  ,
     input   wire                    EX_MEM_regwrite ,
     input   wire                    MEM_WB_regwrite ,
     //Salidas
     output  wire    [FBITS-1:0]     forward_A       ,
-    output  wire    [FBITS-1:0]     forward_B
+    output  wire    [FBITS-1:0]     forward_B       ,
+    output  wire    [FBITS-1:0]     forward_J
     );
     
     localparam  [FBITS-1:0]
         REGBNK      =   2'b00   ,
-        ALUSTG      =   2'b01   ,
-        MEMSTG      =   2'b10   ,
-        WBSTG       =   2'b11   ;
+        MEMSTG      =   2'b01   ,
+        WBSTG       =   2'b01   ;
         
     reg [FBITS-1:0] fwdA_tmp, fwdB_tmp  ;
     
-    //  Forwarding rs
+    //  Forwarding rs1 for EX Stage or for JARL
     always  @(*)
     begin
-        //  Forwarding from ALU Stage
-        if  ((ID_EX_regwrite)&&(ID_EX_rd == IF_ID_rs))
-            fwdA_tmp    =   ALUSTG  ;
         //  Forwarding from MEM Stage
-        else if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs))
+        else if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs1))
             fwdA_tmp    =   MEMSTG  ;
         //  Forwarding from WB Stage
-        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == IF_ID_rs))
+        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == IF_ID_rs1))
             fwdA_tmp    =   WBSTG   ;
         //  No forwarding
         else
             fwdA_tmp    =   REGBNK  ;
     end
     
-    //  Forwarding rt
+    //  Forwarding rs2
     always  @(*)
     begin
-        //  Forwarding from ALU Stage
-        if  ((ID_EX_regwrite)&&(ID_EX_rd == IF_ID_rt))
-            fwdB_tmp    =   ALUSTG  ;
         //  Forwarding from MEM Stage
-        else if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rt))
+        else if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs2))
             fwdB_tmp    =   MEMSTG  ;
         //  Forwarding from WB Stage
-        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == IF_ID_rt))
+        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == IF_ID_rs2))
             fwdB_tmp    =   WBSTG   ;
         //  No forwarding
         else
