@@ -4,7 +4,6 @@ module forw_mux     #(
     )
     (
     //Entradas
-    input   wire    [NBITS-1:0]     regbnk_data ,
     input   wire    [NBITS-1:0]     alustg_data ,
     input   wire    [NBITS-1:0]     memstg_data ,
     input   wire    [NBITS-1:0]     wbstg_data  ,
@@ -14,17 +13,15 @@ module forw_mux     #(
     );
     
     localparam  [SELBITS-1:0]
-        REGBNK      =   2'b00   ,
-        ALUSTG      =   2'b01   ,
-        MEMSTG      =   2'b10   ,
-        WBSTG       =   2'b11   ;
+        ALUSTG      =   2'b00   ,
+        MEMSTG      =   2'b01   ,
+        WBSTG       =   2'b10   ;
         
     reg     [NBITS-1:0] forw_tmp    ;
     
     always  @(*)
     begin
         case(sel_addr)
-            REGBNK      :   forw_tmp    =   regbnk_data ;
             ALUSTG      :   forw_tmp    =   alustg_data ;
             MEMSTG      :   forw_tmp    =   memstg_data ;
             WBSTG       :   forw_tmp    =   wbstg_data  ;

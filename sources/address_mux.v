@@ -4,18 +4,18 @@ module address_mux  #(
     )
     (
     //Entradas
-    input   wire    [NBITS-1:0]     branch_addr ,
-    input   wire    [NBITS-1:0]     jump_addr   ,
-    input   wire    [NBITS-1:0]     reg_addr    ,
-    input   wire    [SELBITS-1:0]   sel_addr    ,
+    input   wire    [NBITS-1:0]     branch_addr ,   //BEQ and BNE address
+    input   wire    [NBITS-1:0]     jump_addr   ,   //J and JAL address
+    input   wire    [NBITS-1:0]     reg_addr    ,   //JARL address
+    input   wire    [SELBITS-1:0]   sel_addr    ,   //JumpReg,BranchTaken
     //Outputs
     output  wire    [NBITS-1:0]     mux_addr
     );
     
     localparam  [SELBITS-1:0]
-        INCONDJ     =   2'b00   ,
-        CONDJ       =   2'b01   ,
-        REG         =   2'b10   ;
+        INCONDJ     =   2'b00   ,   //Jump, No JARL, No branch
+        CONDJ       =   2'b01   ,   //No JARL, Branch taken
+        REG         =   2'b10   ;   //JARL, no Branch taken
     reg     [NBITS-1:0] addr_tmp    ;
     
     always  @(*)

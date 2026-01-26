@@ -26,7 +26,7 @@ module forwarding_unit  #(
     always  @(*)
     begin
         //  Forwarding from MEM Stage
-        else if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs1))
+        if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs1))
             fwdA_tmp    =   MEMSTG  ;
         //  Forwarding from WB Stage
         else if ((MEM_WB_regwrite)&&(MEM_WB_rd == IF_ID_rs1))
@@ -40,7 +40,7 @@ module forwarding_unit  #(
     always  @(*)
     begin
         //  Forwarding from MEM Stage
-        else if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs2))
+        if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs2))
             fwdB_tmp    =   MEMSTG  ;
         //  Forwarding from WB Stage
         else if ((MEM_WB_regwrite)&&(MEM_WB_rd == IF_ID_rs2))
