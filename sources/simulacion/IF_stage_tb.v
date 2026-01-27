@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module IF_stage_tb();
+module if_stage_tb();
 
     //Local Parameters
     localparam NBITS    =   32  ;

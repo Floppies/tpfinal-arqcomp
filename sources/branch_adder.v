@@ -10,6 +10,6 @@ module branch_adder #(
     output  wire    [MSB-1:0]   branch_addr         //  Target Address
 );
 
-    assign branch_addr  =   next_pc + offset    ;
+    assign branch_addr  =   current_pc  + offset    ;
     
 endmodule
