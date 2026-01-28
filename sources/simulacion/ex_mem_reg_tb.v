@@ -8,7 +8,8 @@ module ex_mem_reg_tb();
     localparam      FBITS       =       3       ;
     
     //Entradas
-    reg     [NBITS-1:0]     ex_ni,  ex_rslt     ;
+    reg     [NBITS-1:0]     ex_ni,  ex_rslt     ,
+                                    ex_rs2      ;
     reg     [RBITS-1:0]             ex_rd       ;
     reg     [FBITS-1:0]             ex_szctrl   ;
     reg             ex_memtoreg ,   ex_memread  ,
@@ -17,7 +18,8 @@ module ex_mem_reg_tb();
                     i_clk       ,   i_rst       ;
     
     //Salidas
-    wire    [NBITS-1:0]     mem_ni  ,   mem_rslt;
+    wire    [NBITS-1:0]     mem_ni  ,   mem_rslt,
+                                    mem_rs2     ;
     wire    [RBITS-1:0]             mem_rd      ;
     wire    [FBITS-1:0]             mem_szctrl  ;
     wire            mem_memtoreg,   mem_memread ,
@@ -32,6 +34,7 @@ module ex_mem_reg_tb();
         //Ponemos valores a los registros y sus datos
         ex_rslt     =       8       ;
         ex_ni       =       9       ;
+        ex_rs2      =       4       ;
         ex_rd       =       7       ;
         
         //Valores para el control
@@ -49,6 +52,7 @@ module ex_mem_reg_tb();
         #10
         ex_rslt     =       5       ;
         ex_ni       =       6       ;
+        ex_rs2      =       6       ;
         ex_rd       =       7       ;
         ex_memtoreg     =   0       ;
         ex_memread      =   0       ;
@@ -78,6 +82,7 @@ module ex_mem_reg_tb();
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .EX_next_inst   (ex_ni)         ,
+        .EX_rs2         (ex_rs2)        ,
         .EX_rd          (ex_rd)         ,
         .EX_result      (ex_rslt)       ,
         .EX_memtoreg    (ex_memtoreg)   ,
@@ -89,6 +94,7 @@ module ex_mem_reg_tb();
         .EX_haltflag    (ex_haltflag)   ,
         .MEM_result     (mem_rslt)      ,
         .MEM_next_inst  (mem_ni)        ,
+        .MEM_rs2        (mem_rs2)       ,
         .MEM_rd         (mem_rd)        ,
         .MEM_memtoreg   (mem_memtoreg)  ,
         .MEM_memread    (mem_memread)   ,

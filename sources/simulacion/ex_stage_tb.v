@@ -19,6 +19,7 @@ module ex_stage_tb();
     reg                 i_ALUSrc        ;
 
     wire [NBITS-1:0]    o_EX_result     ;
+    wire [NBITS-1:0]    o_EX_rs2        ;
     wire                o_EX_zero       ;
 
     initial begin
@@ -96,6 +97,7 @@ module ex_stage_tb();
         .i_ALUOp            (i_ALUOp)           ,
         .i_ALUSrc           (i_ALUSrc)          ,
         .o_EX_result        (o_EX_result)       ,
+        .o_EX_rs2           (o_EX_rs2)          ,
         .o_EX_zero          (o_EX_zero)
     );
 

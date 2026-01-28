@@ -17,6 +17,7 @@ module EX_stage #(
     input   wire                    i_ALUSrc        , 
     //Outputs
     output  wire    [NBITS-1:0]     o_EX_result     ,   //ALU result
+    output  wire    [NBITS-1:0]     o_EX_rs2        ,
     output  wire                    o_EX_zero
     );
 
@@ -77,5 +78,7 @@ module EX_stage #(
         .result_op      (o_EX_result)   ,
         .zero           (o_EX_zero)
     );
+
+    assign  o_EX_rs2    =   mux_b       ;
     
 endmodule
