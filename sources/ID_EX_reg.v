@@ -8,10 +8,10 @@ module ID_EX_reg    #(
 (
     //Entradas
     input   wire    i_clk   ,       i_rst,  ID_EX_flush ,
-    input   wire    We                                  ,
     input   wire    [NBITS-1:0]     ID_Rs1, ID_Rs2      ,   //Register data
     input   wire    [NBITS-1:0]     next_pc             ,   //PC+4
     input   wire    [RBITS-1:0]     ID_rd               ,   //Register address
+    input   wire    [RBITS-1:0]     ID_rs1, ID_rs2      ,
     input   wire    [FBITS-1:0]     ID_funct            ,   //funct7,funct3
     input   wire    [NBITS-1:0]     ID_immediate        ,
     input   wire    ID_memtoreg,    ID_memread          ,
@@ -22,6 +22,7 @@ module ID_EX_reg    #(
     //Salidas
     output  reg     [NBITS-1:0]     EX_Rs1, EX_Rs2      ,   //Registers data
     output  reg     [RBITS-1:0]     EX_rd               ,   //Register address
+                                    EX_rs1, EX_rs2      ,
     output  reg     [FBITS-1:0]     EX_funct            ,   //funct7,funct3
     output  reg     [NBITS-1:0]     EX_immediate        ,
     output  reg     EX_memtoreg,    EX_memread          ,
@@ -33,44 +34,45 @@ module ID_EX_reg    #(
 
 always  @(posedge i_clk)
     begin
-        if (We)
+        if  (i_rst  ||  ID_EX_flush)
         begin
-            if  (i_rst  ||  ID_EX_flush)
-            begin
-                EX_Rs1          <=      32'b0           ;
-                EX_Rs2          <=      32'b0           ;
-                EX_immediate    <=      32'b0           ;
-                EX_rd           <=      5'b0            ;
-                EX_funct        <=      10'b0           ;
-                EX_regwrite     <=      0               ;
-                EX_memtoreg     <=      0               ;
-                EX_memread      <=      0               ;
-                EX_memwrite     <=      0               ;
-                EX_alusource    <=      0               ;
-                EX_link         <=      0               ;
-                EX_JumpReg      <=      0               ;
-                EX_BEQ          <=      0               ;
-                EX_BNE          <=      0               ;
-                EX_aluop        <=      2'b0            ;
-            end
-            else
-            begin
-                EX_Rs1          <=      ID_Rs1          ;
-                EX_Rs2          <=      ID_Rs2          ;
-                EX_immediate    <=      ID_immediate    ;
-                EX_rd           <=      ID_rd           ;
-                EX_funct        <=      ID_funct        ;
-                EX_regwrite     <=      ID_regwrite     ;
-                EX_memtoreg     <=      ID_memtoreg     ;
-                EX_memread      <=      ID_memread      ;
-                EX_memwrite     <=      ID_memwrite     ;
-                EX_alusource    <=      ID_alusource    ;
-                EX_link         <=      ID_link         ;
-                EX_JumpReg      <=      ID_JumpReg      ;
-                EX_BEQ          <=      ID_BEQ          ;
-                EX_BNE          <=      ID_BNE          ;
-                EX_aluop        <=      ID_aluop        ;
-            end
+            EX_Rs1          <=      32'b0           ;
+            EX_Rs2          <=      32'b0           ;
+            EX_immediate    <=      32'b0           ;
+            EX_rd           <=      5'b0            ;
+            EX_rs1          <=      5'b0            ;
+            EX_rs2          <=      5'b0            ;
+            EX_funct        <=      10'b0           ;
+            EX_regwrite     <=      0               ;
+            EX_memtoreg     <=      0               ;
+            EX_memread      <=      0               ;
+            EX_memwrite     <=      0               ;
+            EX_alusource    <=      0               ;
+            EX_link         <=      0               ;
+            EX_JumpReg      <=      0               ;
+            EX_BEQ          <=      0               ;
+            EX_BNE          <=      0               ;
+            EX_aluop        <=      2'b0            ;
+        end
+        else
+        begin
+            EX_Rs1          <=      ID_Rs1          ;
+            EX_Rs2          <=      ID_Rs2          ;
+            EX_immediate    <=      ID_immediate    ;
+            EX_rd           <=      ID_rd           ;
+            EX_rs1          <=      ID_rs1          ;
+            EX_rs2          <=      ID_rs2          ;
+            EX_funct        <=      ID_funct        ;
+            EX_regwrite     <=      ID_regwrite     ;
+            EX_memtoreg     <=      ID_memtoreg     ;
+            EX_memread      <=      ID_memread      ;
+            EX_memwrite     <=      ID_memwrite     ;
+            EX_alusource    <=      ID_alusource    ;
+            EX_link         <=      ID_link         ;
+            EX_JumpReg      <=      ID_JumpReg      ;
+            EX_BEQ          <=      ID_BEQ          ;
+            EX_BNE          <=      ID_BNE          ;
+            EX_aluop        <=      ID_aluop        ;
         end
     end
 

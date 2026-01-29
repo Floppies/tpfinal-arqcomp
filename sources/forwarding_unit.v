@@ -4,8 +4,8 @@ module forwarding_unit  #(
     )
     (
     //Entradas
-    input   wire    [RBITS-1:0]     IF_ID_rs1       ,
-    input   wire    [RBITS-1:0]     IF_ID_rs2       ,
+    input   wire    [RBITS-1:0]     ID_EX_rs1       ,
+    input   wire    [RBITS-1:0]     ID_EX_rs2       ,
     input   wire    [RBITS-1:0]     EX_MEM_rd       ,
     input   wire    [RBITS-1:0]     MEM_WB_rd       ,
     input   wire                    EX_MEM_regwrite ,
@@ -26,10 +26,10 @@ module forwarding_unit  #(
     always  @(*)
     begin
         //  Forwarding from MEM Stage
-        if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs1))
+        if ((EX_MEM_regwrite)&&(EX_MEM_rd == ID_EX_rs1))
             fwdA_tmp    =   MEMSTG  ;
         //  Forwarding from WB Stage
-        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == IF_ID_rs1))
+        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == ID_EX_rs1))
             fwdA_tmp    =   WBSTG   ;
         //  No forwarding
         else
@@ -40,10 +40,10 @@ module forwarding_unit  #(
     always  @(*)
     begin
         //  Forwarding from MEM Stage
-        if ((EX_MEM_regwrite)&&(EX_MEM_rd == IF_ID_rs2))
+        if ((EX_MEM_regwrite)&&(EX_MEM_rd == ID_EX_rs2))
             fwdB_tmp    =   MEMSTG  ;
         //  Forwarding from WB Stage
-        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == IF_ID_rs2))
+        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == ID_EX_rs2))
             fwdB_tmp    =   WBSTG   ;
         //  No forwarding
         else

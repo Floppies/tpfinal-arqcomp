@@ -13,7 +13,6 @@ module mem_stage_tb();
             i_clk       ,   i_rst           ;
 
     wire    [NBITS-1:0]     o_MEM_data      ;
-    wire    [NBITS-1:0]     o_MEM_result    ;
     wire    [NBITS-1:0]     o_data_from_mem ;
 
     initial begin
@@ -110,7 +109,6 @@ module mem_stage_tb();
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .o_MEM_data     (o_MEM_data)    ,
-        .o_MEM_result   (o_MEM_result)  ,
         .o_data_from_mem(o_data_from_mem)
     );
 

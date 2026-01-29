@@ -12,7 +12,6 @@ module MEM_stage #(
                     i_clk       ,   i_rst           ,
     //Outputs
     output  wire    [NBITS-1:0]     o_MEM_data      ,   //Data from memory
-    output  wire    [NBITS-1:0]     o_MEM_result    ,   //ALU result
     output  wire    [NBITS-1:0]     o_data_from_mem
     );
 
@@ -43,5 +42,4 @@ module MEM_stage #(
         .o_Data             (o_MEM_data)
     );
 
-    assign  o_MEM_result    =   i_ALU_result    ;
 endmodule

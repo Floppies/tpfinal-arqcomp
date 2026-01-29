@@ -2,7 +2,6 @@
 
 module MEM_WB_reg   #(
     parameter       NBITS   =   32      ,
-    parameter       FBITS   =   3       ,
     parameter       RBITS   =   5
 )
 (
@@ -12,7 +11,6 @@ module MEM_WB_reg   #(
     input   wire    [RBITS-1:0]     MEM_rd          ,   //Register
     input   wire    [NBITS-1:0]     MEM_data        ,   //Mem data
     input   wire    [NBITS-1:0]     MEM_next_inst   ,   //PC+4
-    input   wire    [FBITS-1:0]     MEM_sizecontrol ,   //funct3
     input   wire    MEM_regwrite,   MEM_memtoreg    ,
                     MEM_link    ,   MEM_haltflag    ,
     //Salidas
@@ -20,7 +18,6 @@ module MEM_WB_reg   #(
     output  reg     [RBITS-1:0]     WB_rd           ,   //Register
     output  reg     [NBITS-1:0]     WB_data         ,   //Mem data
     output  reg     [NBITS-1:0]     WB_next_inst    ,   //PC+4
-    output  reg     [FBITS-1:0]     WB_sizecontrol  ,   //funct3
     output  reg     WB_regwrite ,   WB_memtoreg     ,
                     WB_link     ,   WB_haltflag
 );
@@ -33,7 +30,6 @@ always  @(posedge i_clk)
             WB_data         <=      32'b0           ;
             WB_next_inst    <=      32'b0           ;
             WB_rd           <=      5'b0            ;
-            WB_sizecontrol  <=      3'b000          ;
             WB_regwrite     <=      0               ;
             WB_memtoreg     <=      0               ;
             WB_link         <=      0               ;
@@ -45,7 +41,6 @@ always  @(posedge i_clk)
             WB_data         <=      MEM_data        ;
             WB_next_inst    <=      MEM_next_inst   ;
             WB_rd           <=      MEM_rd          ;
-            WB_sizecontrol  <=      MEM_sizecontrol ;
             WB_regwrite     <=      MEM_regwrite    ;
             WB_memtoreg     <=      MEM_memtoreg    ;
             WB_link         <=      MEM_link        ;

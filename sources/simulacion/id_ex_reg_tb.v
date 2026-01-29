@@ -8,9 +8,10 @@ module id_ex_reg_tb();
     localparam      FBITS       =   4       ;
 
     //Entradas
-    reg     [NBITS-1:0]     id_rs1      ,   id_rs2      ;
+    reg     [NBITS-1:0]     id_Rs1      ,   id_Rs2      ;
     reg     [NBITS-1:0]     id_imm      ,   id_next_pc  ;
-    reg     [RBITS-1:0]     id_rd       ;
+    reg     [RBITS-1:0]     id_rd       ,   id_rs2      ,
+                                            id_rs1      ;
     reg     [FBITS-1:0]     id_funct    ;
     reg                     id_memtoreg ,   id_memread  ,
                             id_memwrite ,   id_alusource,
@@ -18,13 +19,14 @@ module id_ex_reg_tb();
                             id_jumpreg  ,   id_bne      ,
                             id_beq      ,
                             i_clk       ,   i_rst       ,
-                            id_ex_flush ,   we          ;
+                                        id_ex_flush ;
     reg     [2:0]           id_aluop    ;
 
     //Salidas
-    wire    [NBITS-1:0]     ex_rs1      ,   ex_rs2      ;
+    wire    [NBITS-1:0]     ex_Rs1      ,   ex_Rs2      ;
     wire    [NBITS-1:0]     ex_imm      ;
-    wire    [RBITS-1:0]     ex_rd       ;
+    wire    [RBITS-1:0]     ex_rd       ,   ex_rs1      ,
+                                            ex_rs2      ;
     wire    [FBITS-1:0]     ex_funct    ;
     wire                    ex_memtoreg ,   ex_memread  ,
                             ex_memwrite ,   ex_alusource,
@@ -38,12 +40,13 @@ module id_ex_reg_tb();
         i_clk       =   1       ;
         i_rst       =   1       ;
         id_ex_flush =   0       ;
-        we          =   1       ;
 
         // Valores iniciales
-        id_rs1      =   32'h0000_0008 ;
-        id_rs2      =   32'h0000_0009 ;
+        id_Rs1      =   32'h0000_0008 ;
+        id_Rs2      =   32'h0000_0009 ;
         id_rd       =   5'd2          ;
+        id_rs1      =   5'd2          ;
+        id_rs2      =   5'd2          ;
         id_funct    =   10'h006       ;
         id_imm      =   32'h0000_000F ;
         id_next_pc  =   32'h0000_0004 ;
@@ -63,8 +66,8 @@ module id_ex_reg_tb();
 
         // Carga normal
         #10
-        id_rs1      =   32'h0000_0011 ;
-        id_rs2      =   32'h0000_0022 ;
+        id_Rs1      =   32'h0000_0011 ;
+        id_Rs2      =   32'h0000_0022 ;
         id_rd       =   5'd3          ;
         id_funct    =   10'h015       ;
         id_imm      =   32'h0000_0008 ;
@@ -80,28 +83,6 @@ module id_ex_reg_tb();
         // Flush (debe limpiar)
         #10
         id_ex_flush =   1       ;
-
-        // Hold con We=0 (no cambia salidas)
-        #10
-        id_ex_flush =   0       ;
-        we          =   0       ;
-        id_rs1      =   32'h0000_00AA ;
-        id_rs2      =   32'h0000_00BB ;
-        id_rd       =   5'd4          ;
-        id_funct    =   10'h3FF       ;
-        id_imm      =   32'h0000_00CC ;
-        id_next_pc  =   32'h0000_000C ;
-        id_memtoreg =   1'b1          ;
-        id_memread  =   1'b1          ;
-        id_memwrite =   1'b1          ;
-        id_alusource=   1'b1          ;
-        id_link     =   1'b1          ;
-        id_regwrite =   1'b1          ;
-        id_aluop    =   3'b111        ;
-
-        // Re-enable write (debe cargar nuevos valores)
-        #10
-        we          =   1       ;
 
         #20
         $finish;
@@ -122,11 +103,12 @@ module id_ex_reg_tb();
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .ID_EX_flush    (id_ex_flush)   ,
-        .We             (we)            ,
-        .ID_Rs1         (id_rs1)        ,
-        .ID_Rs2         (id_rs2)        ,
+        .ID_Rs1         (id_Rs1)        ,
+        .ID_Rs2         (id_Rs2)        ,
         .next_pc        (id_next_pc)    ,
         .ID_rd          (id_rd)         ,
+        .ID_rs1         (id_rs1)        ,
+        .ID_rs2         (id_rs2)        ,
         .ID_funct       (id_funct)      ,
         .ID_immediate   (id_imm)        ,
         .ID_memtoreg    (id_memtoreg)   ,
@@ -139,8 +121,10 @@ module id_ex_reg_tb();
         .ID_link        (id_link)       ,
         .ID_regwrite    (id_regwrite)   ,
         .ID_aluop       (id_aluop)      ,
-        .EX_Rs1         (ex_rs1)        ,
-        .EX_Rs2         (ex_rs2)        ,
+        .EX_Rs1         (ex_Rs1)        ,
+        .EX_Rs2         (ex_Rs2)        ,
+        .EX_rs1         (ex_rs1)        ,
+        .EX_rs2         (ex_rs2)        ,
         .EX_rd          (ex_rd)         ,
         .EX_funct       (ex_funct)      ,
         .EX_immediate   (ex_imm)        ,
