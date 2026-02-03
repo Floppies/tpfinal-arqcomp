@@ -9,27 +9,30 @@ module ID_EX_reg    #(
     //Entradas
     input   wire    i_clk   ,       i_rst,  ID_EX_flush ,
     input   wire    [NBITS-1:0]     ID_Rs1, ID_Rs2      ,   //Register data
-    input   wire    [NBITS-1:0]     next_pc             ,   //PC+4
+    input   wire    [NBITS-1:0]     ID_next_pc          ,   //PC+4
     input   wire    [RBITS-1:0]     ID_rd               ,   //Register address
     input   wire    [RBITS-1:0]     ID_rs1, ID_rs2      ,
     input   wire    [FBITS-1:0]     ID_funct            ,   //funct7,funct3
     input   wire    [NBITS-1:0]     ID_immediate        ,
+    input   wire    [NBITS-1:0]     ID_jump_address     ,
     input   wire    ID_memtoreg,    ID_memread          ,
                     ID_memwrite,    ID_alusource        ,
                     ID_link,        ID_regwrite         ,
                     ID_JumpReg,     ID_BNE, ID_BEQ      ,
-    input   wire    [2:0]           ID_aluop            ,
+    input   wire    [1:0]           ID_aluop            ,
     //Salidas
     output  reg     [NBITS-1:0]     EX_Rs1, EX_Rs2      ,   //Registers data
+                                    EX_next_pc          ,
     output  reg     [RBITS-1:0]     EX_rd               ,   //Register address
                                     EX_rs1, EX_rs2      ,
     output  reg     [FBITS-1:0]     EX_funct            ,   //funct7,funct3
     output  reg     [NBITS-1:0]     EX_immediate        ,
+    output  reg     [NBITS-1:0]     EX_jump_address     ,
     output  reg     EX_memtoreg,    EX_memread          ,
                     EX_memwrite,    EX_alusource        ,
                     EX_link,        EX_regwrite         ,
                     EX_JumpReg,     EX_BNE, EX_BEQ      ,
-    output  reg     [2:0]           EX_aluop
+    output  reg     [1:0]           EX_aluop
 );
 
 always  @(posedge i_clk)
@@ -39,10 +42,12 @@ always  @(posedge i_clk)
             EX_Rs1          <=      32'b0           ;
             EX_Rs2          <=      32'b0           ;
             EX_immediate    <=      32'b0           ;
+            EX_next_pc      <=      32'b0           ;
+            EX_jump_address <=      32'b0           ;
             EX_rd           <=      5'b0            ;
             EX_rs1          <=      5'b0            ;
             EX_rs2          <=      5'b0            ;
-            EX_funct        <=      10'b0           ;
+            EX_funct        <=      4'b0            ;
             EX_regwrite     <=      0               ;
             EX_memtoreg     <=      0               ;
             EX_memread      <=      0               ;
@@ -59,6 +64,8 @@ always  @(posedge i_clk)
             EX_Rs1          <=      ID_Rs1          ;
             EX_Rs2          <=      ID_Rs2          ;
             EX_immediate    <=      ID_immediate    ;
+            EX_jump_address <=      ID_jump_address ;
+            EX_next_pc      <=      ID_next_pc      ;
             EX_rd           <=      ID_rd           ;
             EX_rs1          <=      ID_rs1          ;
             EX_rs2          <=      ID_rs2          ;

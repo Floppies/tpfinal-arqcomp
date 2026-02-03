@@ -12,14 +12,14 @@ module MEM_WB_reg   #(
     input   wire    [NBITS-1:0]     MEM_data        ,   //Mem data
     input   wire    [NBITS-1:0]     MEM_next_inst   ,   //PC+4
     input   wire    MEM_regwrite,   MEM_memtoreg    ,
-                    MEM_link    ,   MEM_haltflag    ,
+                                    MEM_link        ,
     //Salidas
     output  reg     [NBITS-1:0]     WB_result       ,   //ALU result
     output  reg     [RBITS-1:0]     WB_rd           ,   //Register
     output  reg     [NBITS-1:0]     WB_data         ,   //Mem data
     output  reg     [NBITS-1:0]     WB_next_inst    ,   //PC+4
     output  reg     WB_regwrite ,   WB_memtoreg     ,
-                    WB_link     ,   WB_haltflag
+                                    WB_link
 );
 
 always  @(posedge i_clk)
@@ -33,7 +33,6 @@ always  @(posedge i_clk)
             WB_regwrite     <=      0               ;
             WB_memtoreg     <=      0               ;
             WB_link         <=      0               ;
-            WB_haltflag     <=      0               ;
         end
         else
         begin
@@ -44,7 +43,6 @@ always  @(posedge i_clk)
             WB_regwrite     <=      MEM_regwrite    ;
             WB_memtoreg     <=      MEM_memtoreg    ;
             WB_link         <=      MEM_link        ;
-            WB_haltflag     <=      MEM_haltflag    ;
         end
     end
 

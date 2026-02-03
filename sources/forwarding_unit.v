@@ -18,7 +18,7 @@ module forwarding_unit  #(
     localparam  [FBITS-1:0]
         REGBNK      =   2'b00   ,
         MEMSTG      =   2'b01   ,
-        WBSTG       =   2'b01   ;
+        WBSTG       =   2'b10   ;
         
     reg [FBITS-1:0] fwdA_tmp, fwdB_tmp  ;
     

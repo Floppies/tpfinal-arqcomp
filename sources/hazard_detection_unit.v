@@ -29,6 +29,7 @@ module hazard_detection_unit    #(
         write_pc    =   1   ;
         IFID_write  =   1   ;
         IDEX_flush  =   0   ;
+        IFID_flush  =   0   ;
 
         // Flush IF/ID on redirect (control hazard), but ONLY if not stalling
         IFID_flush  = redirect & (~stall)   ;

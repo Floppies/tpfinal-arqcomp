@@ -12,7 +12,7 @@ module datapath_pipe_tb();
     reg             i_clk   ,   i_rst       ;
     
     //Salidas
-    wire pium;
+    wire            o_pc                    ;
     
     initial begin
         $dumpfile("dump.vcd"); $dumpvars;
@@ -40,9 +40,9 @@ module datapath_pipe_tb();
         .RBITS          (RBITS)
     )DATAPATHPIPE
     (
-        .clk            (i_clk)         ,
-        .rst            (i_rst)         ,
-        .pium           (pium)
+        .i_clk          (i_clk)         ,
+        .i_rst          (i_rst)         ,
+        .o_pc           (o_pc)
     );
     
 endmodule

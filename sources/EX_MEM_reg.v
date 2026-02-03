@@ -7,7 +7,7 @@ module EX_MEM_reg   #(
 )
 (
     //Entradas
-    input   wire    i_clk   ,   i_rst   ,   flush   ,
+    input   wire    i_clk       ,   i_rst           ,
     input   wire    [NBITS-1:0]     EX_result       ,   //ALU result
     input   wire    [NBITS-1:0]     EX_next_inst    ,   //PC+4
     input   wire    [NBITS-1:0]     EX_rs2          ,   //rs2 data for stores
@@ -15,7 +15,7 @@ module EX_MEM_reg   #(
     input   wire    [FBITS-1:0]     EX_sizecontrol  ,   //funct3
     input   wire    EX_memtoreg,    EX_memread      ,
                     EX_regwrite,    EX_memwrite     ,
-                    EX_link,        EX_haltflag     ,
+                                    EX_link         ,
     //Salidas
     output  reg     [NBITS-1:0]     MEM_result      ,   //ALU result
     output  reg     [NBITS-1:0]     MEM_next_inst   ,   //PC+4
@@ -24,12 +24,12 @@ module EX_MEM_reg   #(
     output  reg     [FBITS-1:0]     MEM_sizecontrol ,   //funct3
     output  reg     MEM_memtoreg,   MEM_memread     ,
                     MEM_regwrite,   MEM_memwrite    ,
-                    MEM_link,       MEM_haltflag
+                                    MEM_link
 );
 
 always  @(posedge i_clk)
     begin
-        if  (i_rst  ||  flush)
+        if  (i_rst)
         begin
             MEM_result      <=      32'b0           ;
             MEM_next_inst   <=      32'b0           ;
@@ -41,7 +41,6 @@ always  @(posedge i_clk)
             MEM_memread     <=      0               ;
             MEM_memwrite    <=      0               ;
             MEM_link        <=      0               ;
-            MEM_haltflag    <=      0               ;
         end
         else
         begin
@@ -55,7 +54,6 @@ always  @(posedge i_clk)
             MEM_memread     <=      EX_memread      ;
             MEM_memwrite    <=      EX_memwrite     ;
             MEM_link        <=      EX_link         ;
-            MEM_haltflag    <=      MEM_haltflag    ;
         end
     end
 

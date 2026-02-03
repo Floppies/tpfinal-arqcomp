@@ -7,8 +7,9 @@ module datapath_pipe    #(
     parameter   RBITS       =       5
 )
 (
-    input       wire                i_clk,
-    input       wire                i_rst
+    input       wire                i_clk   ,
+    input       wire                i_rst   ,
+    output      wire    [NBITS-1:0] o_pc
 );
 
     // Parametros locales
@@ -22,9 +23,10 @@ module datapath_pipe    #(
     wire    [NBITS-1:0]     IF_next_pc      ,
                             IF_current_pc   ,
                             IF_instruction  ;
-    wire                    IF_ID_flush     ;
+    wire                    IF_ID_write     ;
 
-    assign  IF_ID_flush =   ID_halt |   HDU_IFID_flush  ;
+    assign  IF_ID_write =   HDU_IFID_write  &   ~ID_halt    ;
+    assign  o_pc        =   IF_current_pc   ;
 
     // Instruction Decode stage
     wire    [NBITS-1:0]     ID_next_pc      ,
@@ -39,9 +41,6 @@ module datapath_pipe    #(
                             ID_rd           ;
     wire    [OPBITS-1:0]    ID_opcode       ;   //funct3[0],opcode
     wire    [FBITS-1:0]     ID_funct        ;   //funct7[5],funct3
-    wire                    ID_EX_flush     ;
-
-    assign  ID_EX_flush =   EX_halt |   HDU_IDEX_flush  ;
     
     // Execution stage
     wire    [NBITS-1:0]     EX_Data1        ,
@@ -49,15 +48,16 @@ module datapath_pipe    #(
                             EX_jump_address ,
                             EX_next_pc      ,
                             EX_ALU_result   ,
+                            EX_immediate    ,
                             EX_Rs2          ;
     wire    [RBITS-1:0]     EX_rd           ,
                             EX_rs1          ,
                             EX_rs2          ;
     wire    [FBITS-1:0]     EX_funct        ;   //funct7[5],funct3
-    wire    [2:0]           EX_sizecontrol  ;
+    wire    [2:0]           EX_sizecontrol  ;   // funct3
     wire                    EX_zero         ;
 
-        assign  EX_sizecontrol  =   {EX_funct[3:0]} ;
+    assign  EX_sizecontrol  =   EX_funct[2:0]   ;
 
     // Memory stage
     wire    [NBITS-1:0]     MEM_result          ,
@@ -88,14 +88,14 @@ module datapath_pipe    #(
     wire    [1:0]           ID_aluop    ;
     wire    EX_bne      ,   EX_beq      ,   //EX stage
             EX_link     ,   EX_jumpreg  ,
-            EX_halt     ,   EX_alusource,
+                            EX_alusource,
             EX_regwrite ,   EX_memtoreg ,
             EX_memread  ,   EX_memwrite ;
     wire    [1:0]           EX_aluop    ;
-    wire    MEM_link    ,   MEM_halt    ,   //MEM stage
+    wire                    MEM_link    ,   //MEM stage
             MEM_regwrite,   MEM_memtoreg,
             MEM_memread ,   MEM_memwrite;
-    wire    WB_link     ,   WB_halt     ,   //WB stage
+    wire                    WB_link     ,   //WB stage
             WB_regwrite ,   WB_memtoreg ;
 
     // Forwarding Unit
@@ -110,15 +110,18 @@ module datapath_pipe    #(
     
     // Branch Control
     wire    [NBITS-1:0]     selected_addr   ;
+    wire    [NBITS-1:0]     reg_jump        ;
     wire    [1:0]           branch_sel      ;
     wire    cond_jump   ,   incond_jump     ,
             address_sel ,   branch_taken    ;
+
 
     assign  cond_jump       =   (EX_zero & EX_beq)  |   (~EX_zero & EX_bne) ;
     assign  incond_jump     =   ID_jump     |   EX_jumpreg      ;
     assign  branch_taken    =   EX_beq      |   EX_bne          ;
     assign  branch_sel      =   {EX_jumpreg ,   branch_taken}   ;
     assign  address_sel     =   cond_jump   |   incond_jump     ;
+    assign  reg_jump        =   EX_ALU_result   &   ~1          ;
     
     /*      Modules     */
     
@@ -130,7 +133,7 @@ module datapath_pipe    #(
     (
         .i_branch_addr  (selected_addr) ,
         .i_write_pc     (HDU_write_pc)  ,
-        .i_halt_flag    (WB_halt)       ,
+        .i_halt_flag    (ID_halt)       ,
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .i_branch_flag  (address_sel)   ,
@@ -145,12 +148,13 @@ module datapath_pipe    #(
     (
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
-        .flush          (IF_ID_flush)   ,
-        .We             (HDU_IFID_write),
+        .flush          (HDU_IFID_flush),
+        .We             (IF_ID_write)   ,
         .IF_next_pc     (IF_next_pc)    ,
         .IF_current_pc  (IF_current_pc) ,
         .IF_inst        (IF_instruction),
         .ID_next_pc     (ID_next_pc)    ,
+        .ID_current_pc  (ID_current_pc) ,
         .ID_inst        (ID_instruction)
     );
     
@@ -182,48 +186,51 @@ module datapath_pipe    #(
     );
 
     ID_EX_reg           #(
-        .NBITS          (NBITS)         ,
-        .FBITS          (FBITS)         ,
+        .NBITS          (NBITS)             ,
+        .FBITS          (FBITS)             ,
         .RBITS          (RBITS)
     )IDEXREG
     (
-        .i_clk          (i_clk)         ,
-        .i_rst          (i_rst)         ,
-        .ID_EX_flush    (ID_EX_flush)   ,
-        .ID_Rs1         (ID_Data1)      ,
-        .ID_Rs2         (ID_Data2)      ,
-        .ID_rs1         (ID_rs1)        ,
-        .ID_rs2         (ID_rs2)        ,
-        .next_pc        (ID_next_pc)    ,
-        .ID_rd          (ID_rd)         ,
-        .ID_funct       (ID_funct)      ,
-        .ID_immediate   (ID_immediate)  ,
-        .ID_memtoreg    (ID_memtoreg)   ,
-        .ID_memread     (ID_memread)    ,
-        .ID_memwrite    (ID_memwrite)   ,
-        .ID_JumpReg     (ID_jumpreg)    ,
-        .ID_BEQ         (ID_beq)        ,
-        .ID_BNE         (ID_bne)        ,
-        .ID_alusource   (ID_alusource)  ,
-        .ID_link        (ID_link)       ,
-        .ID_regwrite    (ID_regwrite)   ,
-        .ID_aluop       (ID_aluop)      ,
-        .EX_Rs1         (EX_Data1)      ,
-        .EX_Rs2         (EX_Data2)      ,
-        .EX_rs1         (EX_rs1)        ,
-        .EX_rs2         (EX_rs2)        ,
-        .EX_rd          (EX_rd)         ,
-        .EX_funct       (EX_funct)      ,
-        .EX_immediate   (EX_immediate)  ,
-        .EX_memtoreg    (EX_memtoreg)   ,
-        .EX_memread     (EX_memread)    ,
-        .EX_memwrite    (EX_memwrite)   ,
-        .EX_alusource   (EX_alusource)  ,
-        .EX_link        (EX_link)       ,
-        .EX_regwrite    (EX_regwrite)   ,
-        .EX_JumpReg     (EX_jumpreg)    ,
-        .EX_BEQ         (EX_beq)        ,
-        .EX_BNE         (EX_bne)        ,
+        .i_clk          (i_clk)             ,
+        .i_rst          (i_rst)             ,
+        .ID_EX_flush    (HDU_IDEX_flush)    ,
+        .ID_Rs1         (ID_Data1)          ,
+        .ID_Rs2         (ID_Data2)          ,
+        .ID_rs1         (ID_rs1)            ,
+        .ID_rs2         (ID_rs2)            ,
+        .ID_next_pc     (ID_next_pc)        ,
+        .ID_rd          (ID_rd)             ,
+        .ID_funct       (ID_funct)          ,
+        .ID_immediate   (ID_immediate)      ,
+        .ID_jump_address(ID_jump_address)   ,
+        .ID_memtoreg    (ID_memtoreg)       ,
+        .ID_memread     (ID_memread)        ,
+        .ID_memwrite    (ID_memwrite)       ,
+        .ID_JumpReg     (ID_jumpreg)        ,
+        .ID_BEQ         (ID_beq)            ,
+        .ID_BNE         (ID_bne)            ,
+        .ID_alusource   (ID_alusource)      ,
+        .ID_link        (ID_link)           ,
+        .ID_regwrite    (ID_regwrite)       ,
+        .ID_aluop       (ID_aluop)          ,
+        .EX_Rs1         (EX_Data1)          ,
+        .EX_Rs2         (EX_Data2)          ,
+        .EX_rs1         (EX_rs1)            ,
+        .EX_rs2         (EX_rs2)            ,
+        .EX_rd          (EX_rd)             ,
+        .EX_funct       (EX_funct)          ,
+        .EX_immediate   (EX_immediate)      ,
+        .EX_jump_address(EX_jump_address)   ,
+        .EX_next_pc     (EX_next_pc)        ,
+        .EX_memtoreg    (EX_memtoreg)       ,
+        .EX_memread     (EX_memread)        ,
+        .EX_memwrite    (EX_memwrite)       ,
+        .EX_alusource   (EX_alusource)      ,
+        .EX_link        (EX_link)           ,
+        .EX_regwrite    (EX_regwrite)       ,
+        .EX_JumpReg     (EX_jumpreg)        ,
+        .EX_BEQ         (EX_beq)            ,
+        .EX_BNE         (EX_bne)            ,
         .EX_aluop       (EX_aluop)
     );
     
@@ -268,7 +275,6 @@ module datapath_pipe    #(
         .EX_regwrite    (EX_regwrite)   ,
         .EX_sizecontrol (EX_sizecontrol),
         .EX_link        (EX_link)       ,
-        .EX_haltflag    (EX_halt)       ,
         .MEM_result     (MEM_result)    ,
         .MEM_next_inst  (MEM_next_pc)   ,
         .MEM_rs2        (MEM_Rs2)       ,
@@ -278,7 +284,6 @@ module datapath_pipe    #(
         .MEM_memwrite   (MEM_memwrite)  ,
         .MEM_regwrite   (MEM_regwrite)  ,
         .MEM_link       (MEM_link)      ,
-        .MEM_haltflag   (MEM_halt)      ,
         .MEM_sizecontrol(MEM_sizecontrol)
     );
     
@@ -302,7 +307,6 @@ module datapath_pipe    #(
 
     MEM_WB_reg          #(
         .NBITS          (NBITS)         ,
-        .FBITS          (FBITS)         ,
         .RBITS          (RBITS)
     )MEMWBREG
     (
@@ -315,15 +319,13 @@ module datapath_pipe    #(
         .MEM_regwrite   (MEM_regwrite)  ,
         .MEM_memtoreg   (MEM_memtoreg)  ,
         .MEM_link       (MEM_link)      ,
-        .MEM_haltflag   (MEM_halt)      ,
         .WB_result      (WB_result)     ,
         .WB_rd          (WB_rd)         ,
         .WB_data        (WB_data)       ,
         .WB_next_inst   (WB_next_pc)    ,
         .WB_regwrite    (WB_regwrite)   ,
         .WB_memtoreg    (WB_memtoreg)   ,
-        .WB_link        (WB_link)       ,
-        .WB_haltflag    (WB_halt)
+        .WB_link        (WB_link)
     );
     
     // Write Back
@@ -387,6 +389,17 @@ module datapath_pipe    #(
         .IFID_write         (HDU_IFID_write),
         .IFID_flush         (HDU_IFID_flush),
         .IDEX_flush         (HDU_IDEX_flush)
+    );
+
+    address_mux             #(
+        .NBITS          (NBITS)
+    )ADDRESMUX
+    (
+        .branch_addr    (EX_jump_address)   ,
+        .jump_addr      (ID_jump_address)   ,
+        .reg_addr       (reg_jump)          ,
+        .sel_addr       (branch_sel)        ,
+        .mux_addr       (selected_addr)
     );
     
 endmodule

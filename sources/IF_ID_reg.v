@@ -18,15 +18,15 @@ module IF_ID_reg    #(
 
 always  @(posedge i_clk)
     begin
-        if(We)
+        if  (i_rst  ||  flush)
         begin
-            if  (i_rst  ||  flush)
-            begin
-                ID_next_pc      <=  32'b0           ;
-                ID_inst         <=  32'b0           ;
-                ID_current_pc   <=  32'b0           ;
-            end
-            else
+            ID_next_pc      <=  32'b0           ;
+            ID_inst         <=  32'b0           ;
+            ID_current_pc   <=  32'b0           ;
+        end
+        else
+        begin
+            if(We)
             begin
                 ID_next_pc      <=  IF_next_pc      ;
                 ID_inst         <=  IF_inst         ;
