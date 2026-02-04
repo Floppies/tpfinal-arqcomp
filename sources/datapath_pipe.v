@@ -24,8 +24,8 @@ module datapath_pipe    #(
                             IF_current_pc   ,
                             IF_instruction  ;
     wire                    IF_ID_write     ;
-
-    assign  IF_ID_write =   HDU_IFID_write  &   ~ID_halt    ;
+    wire                    write_pc_eff    ;
+    reg                     halt_in_pipe    ;
     assign  o_pc        =   IF_current_pc   ;
 
     // Instruction Decode stage
@@ -41,6 +41,8 @@ module datapath_pipe    #(
                             ID_rd           ;
     wire    [OPBITS-1:0]    ID_opcode       ;   //funct3[0],opcode
     wire    [FBITS-1:0]     ID_funct        ;   //funct7[5],funct3
+    wire                    IF_ID_flush     ;
+    wire                    ID_EX_flush     ;
     
     // Execution stage
     wire    [NBITS-1:0]     EX_Data1        ,
@@ -88,14 +90,14 @@ module datapath_pipe    #(
     wire    [1:0]           ID_aluop    ;
     wire    EX_bne      ,   EX_beq      ,   //EX stage
             EX_link     ,   EX_jumpreg  ,
-                            EX_alusource,
+            EX_halt     ,   EX_alusource,
             EX_regwrite ,   EX_memtoreg ,
             EX_memread  ,   EX_memwrite ;
     wire    [1:0]           EX_aluop    ;
-    wire                    MEM_link    ,   //MEM stage
+    wire    MEM_halt,       MEM_link    ,   //MEM stage
             MEM_regwrite,   MEM_memtoreg,
             MEM_memread ,   MEM_memwrite;
-    wire                    WB_link     ,   //WB stage
+    wire    WB_halt     ,   WB_link     ,   //WB stage
             WB_regwrite ,   WB_memtoreg ;
 
     // Forwarding Unit
@@ -122,6 +124,24 @@ module datapath_pipe    #(
     assign  branch_sel      =   {EX_jumpreg ,   branch_taken}   ;
     assign  address_sel     =   cond_jump   |   incond_jump     ;
     assign  reg_jump        =   EX_ALU_result   &   ~1          ;
+
+    assign  IF_ID_write     =   HDU_IFID_write  &   ~halt_in_pipe   ;
+    assign  write_pc_eff    =   HDU_write_pc    &   ~halt_in_pipe   ;
+    assign  IF_ID_flush     =   HDU_IFID_flush  |   halt_in_pipe    ;
+    assign  ID_EX_flush     =   HDU_IDEX_flush  |   WB_halt         ;
+
+    // Latch: once HALT is in ID, stop fetching new instructions
+    always @(posedge i_clk or posedge i_rst)
+    begin
+        if (i_rst)
+        begin
+            halt_in_pipe    <=  1'b0    ;
+        end
+        else if (ID_halt)
+        begin
+            halt_in_pipe    <=  1'b1    ;
+        end
+    end
     
     /*      Modules     */
     
@@ -132,8 +152,8 @@ module datapath_pipe    #(
     )IFSTAGE
     (
         .i_branch_addr  (selected_addr) ,
-        .i_write_pc     (HDU_write_pc)  ,
-        .i_halt_flag    (ID_halt)       ,
+        .i_write_pc     (write_pc_eff)  ,
+        .i_halt_flag    (halt_in_pipe)  ,
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .i_branch_flag  (address_sel)   ,
@@ -148,7 +168,7 @@ module datapath_pipe    #(
     (
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
-        .flush          (HDU_IFID_flush),
+        .flush          (IF_ID_flush)   ,
         .We             (IF_ID_write)   ,
         .IF_next_pc     (IF_next_pc)    ,
         .IF_current_pc  (IF_current_pc) ,
@@ -193,7 +213,7 @@ module datapath_pipe    #(
     (
         .i_clk          (i_clk)             ,
         .i_rst          (i_rst)             ,
-        .ID_EX_flush    (HDU_IDEX_flush)    ,
+        .ID_EX_flush    (ID_EX_flush)       ,
         .ID_Rs1         (ID_Data1)          ,
         .ID_Rs2         (ID_Data2)          ,
         .ID_rs1         (ID_rs1)            ,
@@ -211,6 +231,7 @@ module datapath_pipe    #(
         .ID_BNE         (ID_bne)            ,
         .ID_alusource   (ID_alusource)      ,
         .ID_link        (ID_link)           ,
+        .ID_halt        (ID_halt)           ,
         .ID_regwrite    (ID_regwrite)       ,
         .ID_aluop       (ID_aluop)          ,
         .EX_Rs1         (EX_Data1)          ,
@@ -227,6 +248,7 @@ module datapath_pipe    #(
         .EX_memwrite    (EX_memwrite)       ,
         .EX_alusource   (EX_alusource)      ,
         .EX_link        (EX_link)           ,
+        .EX_halt        (EX_halt)           ,
         .EX_regwrite    (EX_regwrite)       ,
         .EX_JumpReg     (EX_jumpreg)        ,
         .EX_BEQ         (EX_beq)            ,
@@ -265,6 +287,7 @@ module datapath_pipe    #(
     (
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
+        .flush          (WB_halt)       ,
         .EX_next_inst   (EX_next_pc)    ,
         .EX_rs2         (EX_Rs2)        ,
         .EX_rd          (EX_rd)         ,
@@ -275,6 +298,7 @@ module datapath_pipe    #(
         .EX_regwrite    (EX_regwrite)   ,
         .EX_sizecontrol (EX_sizecontrol),
         .EX_link        (EX_link)       ,
+        .EX_halt        (EX_halt)       ,
         .MEM_result     (MEM_result)    ,
         .MEM_next_inst  (MEM_next_pc)   ,
         .MEM_rs2        (MEM_Rs2)       ,
@@ -284,6 +308,7 @@ module datapath_pipe    #(
         .MEM_memwrite   (MEM_memwrite)  ,
         .MEM_regwrite   (MEM_regwrite)  ,
         .MEM_link       (MEM_link)      ,
+        .MEM_halt       (MEM_halt)      ,
         .MEM_sizecontrol(MEM_sizecontrol)
     );
     
@@ -312,6 +337,7 @@ module datapath_pipe    #(
     (
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
+        .flush          (WB_halt)       ,
         .MEM_result     (MEM_result)    ,
         .MEM_rd         (MEM_rd)        ,
         .MEM_data       (MEM_data)      ,
@@ -319,13 +345,15 @@ module datapath_pipe    #(
         .MEM_regwrite   (MEM_regwrite)  ,
         .MEM_memtoreg   (MEM_memtoreg)  ,
         .MEM_link       (MEM_link)      ,
+        .MEM_halt       (MEM_halt)      ,
         .WB_result      (WB_result)     ,
         .WB_rd          (WB_rd)         ,
         .WB_data        (WB_data)       ,
         .WB_next_inst   (WB_next_pc)    ,
         .WB_regwrite    (WB_regwrite)   ,
         .WB_memtoreg    (WB_memtoreg)   ,
-        .WB_link        (WB_link)
+        .WB_link        (WB_link)       ,
+        .WB_halt        (WB_halt)
     );
     
     // Write Back

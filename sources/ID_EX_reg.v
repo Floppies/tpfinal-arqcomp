@@ -19,6 +19,7 @@ module ID_EX_reg    #(
                     ID_memwrite,    ID_alusource        ,
                     ID_link,        ID_regwrite         ,
                     ID_JumpReg,     ID_BNE, ID_BEQ      ,
+                                    ID_halt             ,
     input   wire    [1:0]           ID_aluop            ,
     //Salidas
     output  reg     [NBITS-1:0]     EX_Rs1, EX_Rs2      ,   //Registers data
@@ -32,6 +33,7 @@ module ID_EX_reg    #(
                     EX_memwrite,    EX_alusource        ,
                     EX_link,        EX_regwrite         ,
                     EX_JumpReg,     EX_BNE, EX_BEQ      ,
+                                    EX_halt             ,
     output  reg     [1:0]           EX_aluop
 );
 
@@ -57,6 +59,7 @@ always  @(posedge i_clk)
             EX_JumpReg      <=      0               ;
             EX_BEQ          <=      0               ;
             EX_BNE          <=      0               ;
+            EX_halt         <=      0               ;
             EX_aluop        <=      2'b0            ;
         end
         else
@@ -79,6 +82,7 @@ always  @(posedge i_clk)
             EX_JumpReg      <=      ID_JumpReg      ;
             EX_BEQ          <=      ID_BEQ          ;
             EX_BNE          <=      ID_BNE          ;
+            EX_halt         <=      ID_halt         ;
             EX_aluop        <=      ID_aluop        ;
         end
     end

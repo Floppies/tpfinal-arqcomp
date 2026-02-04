@@ -6,25 +6,25 @@ module MEM_WB_reg   #(
 )
 (
     //Entradas
-    input   wire    i_clk   ,       i_rst           ,
+    input   wire    i_clk   ,   i_rst   ,   flush   ,
     input   wire    [NBITS-1:0]     MEM_result      ,   //ALU result
     input   wire    [RBITS-1:0]     MEM_rd          ,   //Register
     input   wire    [NBITS-1:0]     MEM_data        ,   //Mem data
     input   wire    [NBITS-1:0]     MEM_next_inst   ,   //PC+4
     input   wire    MEM_regwrite,   MEM_memtoreg    ,
-                                    MEM_link        ,
+                    MEM_halt    ,   MEM_link        ,
     //Salidas
     output  reg     [NBITS-1:0]     WB_result       ,   //ALU result
     output  reg     [RBITS-1:0]     WB_rd           ,   //Register
     output  reg     [NBITS-1:0]     WB_data         ,   //Mem data
     output  reg     [NBITS-1:0]     WB_next_inst    ,   //PC+4
     output  reg     WB_regwrite ,   WB_memtoreg     ,
-                                    WB_link
+                    WB_halt     ,   WB_link
 );
 
 always  @(posedge i_clk)
     begin
-        if  (i_rst)
+        if  (i_rst  ||  flush)
         begin
             WB_result       <=      32'b0           ;
             WB_data         <=      32'b0           ;
@@ -33,6 +33,7 @@ always  @(posedge i_clk)
             WB_regwrite     <=      0               ;
             WB_memtoreg     <=      0               ;
             WB_link         <=      0               ;
+            WB_halt         <=      0               ;
         end
         else
         begin
@@ -43,6 +44,7 @@ always  @(posedge i_clk)
             WB_regwrite     <=      MEM_regwrite    ;
             WB_memtoreg     <=      MEM_memtoreg    ;
             WB_link         <=      MEM_link        ;
+            WB_halt         <=      MEM_halt        ;
         end
     end
 
