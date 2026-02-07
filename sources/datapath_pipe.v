@@ -7,9 +7,42 @@ module datapath_pipe    #(
     parameter   RBITS       =       5
 )
 (
-    input       wire                i_clk   ,
-    input       wire                i_rst   ,
-    output      wire    [NBITS-1:0] o_pc
+    //Inputs
+    input       wire                i_clk           ,
+    input       wire                i_rst           ,
+    input       wire                debug_mode      ,   //Signalizes debug mode enable
+    input       wire                step_pulse      ,   //Sent by the debug unit to only enable the CPU for a pulse
+    input       wire                dbg_imem_we     ,   //To write instruction data from debug
+    input       wire    [NBITS-1:0] dbg_imem_addr   ,   //Instruction mem address
+    input       wire    [NBITS-1:0] dbg_imem_data   ,   //Instrucction mem input data
+    input       wire    [RBITS-1:0] dbg_reg_index   ,   //Index for register bank
+    input       wire    [NBITS-1:0] dbg_dmem_addr   ,   //Instruction mem address
+    input       wire                dbg_dmem_re     ,   //To read data memory from debug mode
+    
+    //Outputs
+    output      wire    [NBITS-1:0] dbg_reg_data    ,   //Data from Reg bank used in debug mode
+    output      wire    [NBITS-1:0] dbg_dmem_data   ,   //Data from Data memory used in debug mode
+    output      wire    [NBITS-1:0] o_IF_next_pc    ,   //IF stage
+    output      wire    [NBITS-1:0] o_IF_pc         ,
+    output      wire    [NBITS-1:0] o_ID_inst       ,   //ID stage
+    output      wire    [NBITS-1:0] o_ID_next_pc    ,
+    output      wire    [NBITS-1:0] o_ID_pc         ,
+    output      wire    [NBITS-1:0] o_ID_imm        ,
+    output      wire    [NBITS-1:0] o_ID_Rs1        ,
+    output      wire    [NBITS-1:0] o_ID_Rs2        ,
+    output      wire    [RBITS-1:0] o_ID_rd         ,
+    output      wire    [NBITS-1:0] o_EX_result     ,   //EX stage
+    output      wire    [NBITS-1:0] o_EX_Rs2        ,
+    output      wire    [RBITS-1:0] o_EX_rd         ,
+    output      wire    [NBITS-1:0] o_MEM_result    ,   //MEM stage
+    output      wire    [NBITS-1:0] o_MEM_data      ,
+    output      wire    [RBITS-1:0] o_MEM_rd        ,
+    output      wire    [NBITS-1:0] o_WB_data       ,   //WB stage
+    output      wire    [RBITS-1:0] o_WB_rd         ,
+    output      wire    [NBITS-1:0] o_inst_data     ,   //Data from instruction memory
+    output      wire    [NBITS-1:0] o_reg_data      ,   //Data from reg bank
+    output      wire    [NBITS-1:0] o_mem_data      ,   //Data from data memory
+    output      wire                o_haltflag
 );
 
     // Parametros locales
@@ -26,7 +59,10 @@ module datapath_pipe    #(
     wire                    IF_ID_write     ;
     wire                    write_pc_eff    ;
     reg                     halt_in_pipe    ;
-    assign  o_pc        =   IF_current_pc   ;
+
+    assign  o_IF_next_pc=   IF_next_pc      ;
+    assign  o_IF_pc     =   IF_current_pc   ;
+    assign  o_haltflag  =   halt_in_pipe    ;
 
     // Instruction Decode stage
     wire    [NBITS-1:0]     ID_next_pc      ,
@@ -43,6 +79,15 @@ module datapath_pipe    #(
     wire    [FBITS-1:0]     ID_funct        ;   //funct7[5],funct3
     wire                    IF_ID_flush     ;
     wire                    ID_EX_flush     ;
+
+    assign  o_ID_inst   =   ID_instruction  ;
+    assign  o_ID_pc     =   ID_current_pc   ;
+    assign  o_ID_next_pc=   ID_next_pc      ;
+    assign  o_ID_imm    =   ID_immediate    ;
+    assign  o_ID_rd     =   ID_rd           ;
+    assign  o_ID_Rs1    =   ID_Data1        ;
+    assign  o_ID_Rs2    =   ID_Data2        ;
+    assign  dbg_reg_data=   ID_Data1        ;
     
     // Execution stage
     wire    [NBITS-1:0]     EX_Data1        ,
@@ -60,15 +105,28 @@ module datapath_pipe    #(
     wire                    EX_zero         ;
 
     assign  EX_sizecontrol  =   EX_funct[2:0]   ;
+    assign  o_EX_rd         =   EX_rd           ;
+    assign  o_EX_result     =   EX_ALU_result   ;
+    assign  o_EX_Rs2        =   EX_Rs2          ;
 
     // Memory stage
     wire    [NBITS-1:0]     MEM_result          ,
+                            MEM_addr            ,
                             MEM_Rs2             ,
                             MEM_next_pc         ,
                             MEM_data            ,
                             MEM_data_from_mem   ;
     wire    [RBITS-1:0]     MEM_rd              ;
     wire    [2:0]           MEM_sizecontrol     ;
+    wire                    MEM_re              ;
+
+    assign  o_MEM_result    =   MEM_result      ;
+    assign  o_MEM_data      =   MEM_data        ;
+    assign  o_MEM_rd        =   MEM_rd          ;
+    assign  MEM_re          =   debug_mode  ?   dbg_dmem_re     :   MEM_memread ;
+    assign  MEM_addr        =   debug_mode  ?   dbg_dmem_addr   :   MEM_result  ;
+    assign  dbg_dmem_data   =   MEM_data        ;
+
 
     // Write Back stage
     wire    [NBITS-1:0]     WB_result           ,
@@ -79,6 +137,8 @@ module datapath_pipe    #(
     wire    [1:0]           WB_select           ;
 
     assign  WB_select   =   {WB_link, WB_memtoreg}  ;
+    assign  o_WB_data   =   WB_data_from_wb     ;
+    assign  o_WB_rd     =   WB_rd               ;
 
     // Control Signals
     wire    ID_bne      ,   ID_beq      ,   //ID stage
@@ -125,6 +185,7 @@ module datapath_pipe    #(
     assign  address_sel     =   cond_jump   |   incond_jump     ;
     assign  reg_jump        =   EX_ALU_result   &   ~1          ;
 
+    // Halt control
     assign  IF_ID_write     =   HDU_IFID_write  &   ~halt_in_pipe   ;
     assign  write_pc_eff    =   HDU_write_pc    &   ~halt_in_pipe   ;
     assign  IF_ID_flush     =   HDU_IFID_flush  |   halt_in_pipe    ;
@@ -137,12 +198,15 @@ module datapath_pipe    #(
         begin
             halt_in_pipe    <=  1'b0    ;
         end
-        else if (ID_halt)
+        else if (cpu_en &   ID_halt)
         begin
             halt_in_pipe    <=  1'b1    ;
         end
     end
-    
+
+    //CPU enable Control
+    wire    cpu_en  =   ~debug_mode |   step_pulse  ;
+
     /*      Modules     */
     
     // Instruction Fetch
@@ -156,6 +220,7 @@ module datapath_pipe    #(
         .i_halt_flag    (halt_in_pipe)  ,
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
+        .cpu_en         (cpu_en)        ,
         .i_branch_flag  (address_sel)   ,
         .o_current_pc   (IF_current_pc) ,
         .o_next_pc      (IF_next_pc)    ,
@@ -169,6 +234,7 @@ module datapath_pipe    #(
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .flush          (IF_ID_flush)   ,
+        .cpu_en         (cpu_en)        ,
         .We             (IF_ID_write)   ,
         .IF_next_pc     (IF_next_pc)    ,
         .IF_current_pc  (IF_current_pc) ,
@@ -191,9 +257,12 @@ module datapath_pipe    #(
         .i_ID_instruction   (ID_instruction)    ,
         .i_reg_data         (WB_data_from_wb)   ,
         .i_reg_address      (WB_rd)             ,
+        .dbg_reg_index      (dbg_reg_index)     ,
         .i_regwrite         (WB_regwrite)       ,
         .i_clk              (i_clk)             ,
         .i_rst              (i_rst)             ,
+        .debug_mode         (debug_mode)        ,
+        .cpu_en             (cpu_en)            ,
         .o_jump_address     (ID_jump_address)   ,
         .o_Data1            (ID_Data1)          ,
         .o_Data2            (ID_Data2)          ,
@@ -214,6 +283,7 @@ module datapath_pipe    #(
         .i_clk          (i_clk)             ,
         .i_rst          (i_rst)             ,
         .ID_EX_flush    (ID_EX_flush)       ,
+        .cpu_en         (cpu_en)            ,
         .ID_Rs1         (ID_Data1)          ,
         .ID_Rs2         (ID_Data2)          ,
         .ID_rs1         (ID_rs1)            ,
@@ -288,6 +358,7 @@ module datapath_pipe    #(
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .flush          (WB_halt)       ,
+        .cpu_en         (cpu_en)        ,
         .EX_next_inst   (EX_next_pc)    ,
         .EX_rs2         (EX_Rs2)        ,
         .EX_rd          (EX_rd)         ,
@@ -319,13 +390,14 @@ module datapath_pipe    #(
         .FBITS          (FBITS-1)
     )MEMSTAGE
     (
-        .i_ALU_result   (MEM_result)        ,
+        .i_ALU_result   (MEM_addr)          ,
         .i_rs2          (MEM_Rs2)           ,
         .i_size_control (MEM_sizecontrol)   ,
-        .i_memread      (MEM_memread)       ,
+        .i_memread      (MEM_re)            ,
         .i_memwrite     (MEM_memwrite)      ,
         .i_clk          (i_clk)             ,
         .i_rst          (i_rst)             ,
+        .cpu_en         (cpu_en)            ,
         .o_MEM_data     (MEM_data)          ,
         .o_data_from_mem(MEM_data_from_mem)
     );
@@ -338,6 +410,7 @@ module datapath_pipe    #(
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .flush          (WB_halt)       ,
+        .cpu_en         (cpu_en)        ,
         .MEM_result     (MEM_result)    ,
         .MEM_rd         (MEM_rd)        ,
         .MEM_data       (MEM_data)      ,

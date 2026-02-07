@@ -6,7 +6,7 @@ module MEM_WB_reg   #(
 )
 (
     //Entradas
-    input   wire    i_clk   ,   i_rst   ,   flush   ,
+    input   wire    i_clk   ,   i_rst   ,   flush   ,   cpu_en  ,
     input   wire    [NBITS-1:0]     MEM_result      ,   //ALU result
     input   wire    [RBITS-1:0]     MEM_rd          ,   //Register
     input   wire    [NBITS-1:0]     MEM_data        ,   //Mem data
@@ -35,7 +35,7 @@ always  @(posedge i_clk)
             WB_link         <=      0               ;
             WB_halt         <=      0               ;
         end
-        else
+        else if (cpu_en)
         begin
             WB_result       <=      MEM_result      ;
             WB_data         <=      MEM_data        ;

@@ -11,8 +11,10 @@ module ID_stage #(
     input   wire    [NBITS-1:0]     i_ID_instruction,
     input   wire    [NBITS-1:0]     i_reg_data      ,
     input   wire    [RBITS-1:0]     i_reg_address   ,
-    input   wire                    i_regwrite      ,
-                    i_clk       ,   i_rst           ,   
+                                    dbg_reg_index   ,
+    input   wire    cpu_en      ,   i_regwrite      ,
+                    i_clk       ,   i_rst           ,
+                                    debug_mode      ,   
     //Outputs
     output  wire    [NBITS-1:0]     o_jump_address  ,   //JAL target address
     output  wire    [NBITS-1:0]     o_Data1         ,
@@ -27,9 +29,11 @@ module ID_stage #(
 
     wire    [RBITS-1:0] rs1 ,   rs2 ;
     wire    [NBITS-1:0] immediate   ;
+    wire                enable_bank ;
 
-    assign  rs1 =   i_ID_instruction[19:15] ;
-    assign  rs2 =   i_ID_instruction[24:20] ;
+    assign  rs1         =   debug_mode ? dbg_reg_index  :   i_ID_instruction[19:15] ;
+    assign  rs2         =   i_ID_instruction[24:20] ;
+    assign  enable_bank =   cpu_en  &   i_regwrite  ;
 
     branch_adder     #(
         .MSB            (NBITS)
@@ -49,7 +53,7 @@ module ID_stage #(
     (
         .i_clk          (i_clk)             ,
         .i_rst          (i_rst)             ,
-        .enable         (i_regwrite)        ,
+        .enable         (enable_bank)        ,
         .i_reg1         (rs1)               ,
         .i_reg2         (rs2)               ,
         .i_regW         (i_reg_address)     ,

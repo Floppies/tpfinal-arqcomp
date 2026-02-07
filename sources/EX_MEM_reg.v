@@ -7,7 +7,7 @@ module EX_MEM_reg   #(
 )
 (
     //Entradas
-    input   wire    i_clk   ,   i_rst   ,   flush   ,
+    input   wire    i_clk   ,   i_rst   ,   flush   ,   cpu_en  ,
     input   wire    [NBITS-1:0]     EX_result       ,   //ALU result
     input   wire    [NBITS-1:0]     EX_next_inst    ,   //PC+4
     input   wire    [NBITS-1:0]     EX_rs2          ,   //rs2 data for stores
@@ -43,7 +43,7 @@ always  @(posedge i_clk)
             MEM_link        <=      0               ;
             MEM_halt        <=      0               ;
         end
-        else
+        else if (cpu_en)
         begin
             MEM_result      <=      EX_result       ;
             MEM_next_inst   <=      EX_next_inst    ;

@@ -5,9 +5,10 @@ module program_counter  #(
 )
 (
     input   wire    i_clk   ,   i_rst   ,
-    input   wire    [MSB-1:0]   next_pc ,   //  Entrada de la nueva instruccion
-    input   wire                write_pc,   //  Entrada que actualiza el registro en este ciclo
-    output  reg     [MSB-1:0]   o_pc        //  Salida
+    input   wire    [MSB-1:0]   next_pc ,   //  New instruction
+    input   wire                cpu_en  ,   //  Enables CPU, comes from debug mode
+                                write_pc,   //  Updates in the new cycle, internal to CPU
+    output  reg     [MSB-1:0]   o_pc        //  Output
 );
 
 always  @(posedge i_clk)
@@ -16,7 +17,7 @@ always  @(posedge i_clk)
         begin
             o_pc        <=      32'b0   ;
         end
-        else if (write_pc)
+        else if (cpu_en &   write_pc)
             o_pc        <=      next_pc ;
     end
 

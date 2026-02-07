@@ -19,7 +19,8 @@ module id_ex_reg_tb();
                             id_jumpreg  ,   id_bne      ,
                             id_beq      ,
                             i_clk       ,   i_rst       ,
-                                        id_ex_flush ;
+                                        id_ex_flush ,
+                                        cpu_en      ;
     reg     [2:0]           id_aluop    ;
 
     //Salidas
@@ -39,6 +40,7 @@ module id_ex_reg_tb();
         $dumpfile("dump.vcd"); $dumpvars;
         i_clk       =   1       ;
         i_rst       =   1       ;
+        cpu_en      =   1       ;
         id_ex_flush =   0       ;
 
         // Valores iniciales
@@ -103,6 +105,7 @@ module id_ex_reg_tb();
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
         .ID_EX_flush    (id_ex_flush)   ,
+        .cpu_en         (cpu_en)        ,
         .ID_Rs1         (id_Rs1)        ,
         .ID_Rs2         (id_Rs2)        ,
         .next_pc        (id_next_pc)    ,

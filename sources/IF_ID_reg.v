@@ -5,7 +5,7 @@ module IF_ID_reg    #(
 )
 (
     //Entradas
-    input   wire    i_clk   ,   i_rst,  flush   ,
+    input   wire    i_clk   ,   i_rst,  flush   ,   cpu_en  ,
     input   wire    [MSB-1:0]   IF_next_pc      ,
     input   wire    [MSB-1:0]   IF_current_pc   ,
     input   wire    [MSB-1:0]   IF_inst         ,
@@ -24,14 +24,11 @@ always  @(posedge i_clk)
             ID_inst         <=  32'b0           ;
             ID_current_pc   <=  32'b0           ;
         end
-        else
+        else if (cpu_en &   We)
         begin
-            if(We)
-            begin
-                ID_next_pc      <=  IF_next_pc      ;
-                ID_inst         <=  IF_inst         ;
-                ID_current_pc   <=  IF_current_pc   ;
-            end
+            ID_next_pc      <=  IF_next_pc      ;
+            ID_inst         <=  IF_inst         ;
+            ID_current_pc   <=  IF_current_pc   ;
         end
     end
 

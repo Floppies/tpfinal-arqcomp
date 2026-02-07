@@ -13,6 +13,7 @@ module data_memory  #(
     input   wire    [ADDR_LENGTH-1:0]   i_Addr          ,
     input   wire                        We              ,
     input   wire                        Re              ,
+    input   wire                        cpu_en          ,
     input   wire    [2:0]               size_control    ,
     input   wire    [DATA_LENGTH-1:0]   i_Data          ,
     output  reg     [DATA_LENGTH-1:0]   o_Data
@@ -33,7 +34,7 @@ begin
         for (i = 0; i < MEM_SIZE; i = i + 1)
             RAM_mem[i] <= {WORD_WIDTH{1'b0}};
     end
-    else if  (We)
+    else if  (cpu_en    &   We)
         case(size_control[1:0])
             BYTE    :   RAM_mem[i_Addr][7:0]    <=  i_Data[7:0] ;
             HALF    :   RAM_mem[i_Addr][15:0]   <=  i_Data[15:0];

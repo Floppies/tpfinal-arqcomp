@@ -7,7 +7,7 @@ module ID_EX_reg    #(
 )
 (
     //Entradas
-    input   wire    i_clk   ,       i_rst,  ID_EX_flush ,
+    input   wire    i_clk   ,       i_rst,  ID_EX_flush ,   cpu_en  ,
     input   wire    [NBITS-1:0]     ID_Rs1, ID_Rs2      ,   //Register data
     input   wire    [NBITS-1:0]     ID_next_pc          ,   //PC+4
     input   wire    [RBITS-1:0]     ID_rd               ,   //Register address
@@ -62,7 +62,7 @@ always  @(posedge i_clk)
             EX_halt         <=      0               ;
             EX_aluop        <=      2'b0            ;
         end
-        else
+        else if (cpu_en)
         begin
             EX_Rs1          <=      ID_Rs1          ;
             EX_Rs2          <=      ID_Rs2          ;

@@ -10,7 +10,8 @@ module mem_wb_reg_tb();
     reg     [RBITS-1:0] mem_rd      ;
     reg                 mem_memtoreg, mem_regwrite,
                         mem_link    , mem_haltflag,
-                        i_clk       , i_rst       ;
+                        i_clk       , i_rst       ,
+                        cpu_en                  ;
 
     //Salidas
     wire    [NBITS-1:0] wb_data , wb_rslt , wb_next_inst ;
@@ -22,6 +23,7 @@ module mem_wb_reg_tb();
         $dumpfile("dump.vcd"); $dumpvars;
         i_clk       =   1       ;
         i_rst       =   1       ;
+        cpu_en      =   1       ;
 
         // Valores iniciales
         mem_data    =   32'h0000_0008 ;
@@ -75,6 +77,7 @@ module mem_wb_reg_tb();
     (
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
+        .cpu_en         (cpu_en)        ,
         .MEM_result     (mem_rslt)      ,
         .MEM_rd         (mem_rd)        ,
         .MEM_data       (mem_data)      ,

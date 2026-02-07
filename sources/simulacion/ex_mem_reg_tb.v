@@ -15,7 +15,8 @@ module ex_mem_reg_tb();
     reg             ex_memtoreg ,   ex_memread  ,
                     ex_memwrite ,   ex_regwrite ,
                     ex_link     ,   ex_haltflag ,
-                    i_clk       ,   i_rst       ;
+                    i_clk       ,   i_rst       ,
+                    cpu_en                  ;
     
     //Salidas
     wire    [NBITS-1:0]     mem_ni  ,   mem_rslt,
@@ -30,6 +31,7 @@ module ex_mem_reg_tb();
         $dumpfile("dump.vcd"); $dumpvars;
         i_clk       =       1       ;
         i_rst       =       1       ;
+        cpu_en      =       1       ;
         
         //Ponemos valores a los registros y sus datos
         ex_rslt     =       8       ;
@@ -81,6 +83,7 @@ module ex_mem_reg_tb();
     (
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
+        .cpu_en         (cpu_en)        ,
         .EX_next_inst   (ex_ni)         ,
         .EX_rs2         (ex_rs2)        ,
         .EX_rd          (ex_rd)         ,

@@ -7,7 +7,7 @@ module IF_stage #(
     input   wire    [NBITS-1:0]     i_branch_addr   ,   //Branch and jump address
     input   wire    i_write_pc  ,   i_halt_flag     ,
     input   wire    i_clk       ,   i_rst           ,
-                                    i_branch_flag   ,
+                    cpu_en      ,   i_branch_flag   ,
     //Outputs
     output  wire    [NBITS-1:0]     o_current_pc    ,   //PC
     output  wire    [NBITS-1:0]     o_next_pc       ,   //PC+4
@@ -40,6 +40,7 @@ module IF_stage #(
         .i_rst      (i_rst)         ,
         .next_pc    (pc_mux)        ,
         .write_pc   (write_pc_and)  ,
+        .cpu_en     (cpu_en)        ,
         .o_pc       (current_pc)
     );
 
