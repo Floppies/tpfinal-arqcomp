@@ -5,9 +5,12 @@ module IF_stage #(
     (
     //Entradas
     input   wire    [NBITS-1:0]     i_branch_addr   ,   //Branch and jump address
+    input   wire    [NBITS-1:0]     i_imem_addr     ,
+    input   wire    [NBITS-1:0]     i_imem_data     ,
     input   wire    i_write_pc  ,   i_halt_flag     ,
     input   wire    i_clk       ,   i_rst           ,
                     cpu_en      ,   i_branch_flag   ,
+                    debug_mode  ,   i_imem_we       ,
     //Outputs
     output  wire    [NBITS-1:0]     o_current_pc    ,   //PC
     output  wire    [NBITS-1:0]     o_next_pc       ,   //PC+4
@@ -16,11 +19,16 @@ module IF_stage #(
 
     wire    [NBITS-1:0] IF_next_pc  ;
     wire    [NBITS-1:0] current_pc  ;
+    wire    [NBITS-1:0] i_Addr      ;
     wire    [NBITS-1:0] pc_mux      ;
     wire    [NBITS-1:0] IF_inst     ;
-    wire    write_pc_and            ;
+    wire    write_pc_and            ,
+            use_dbg_addr            ;
 
-    assign  write_pc_and    =   ~i_halt_flag    &   i_write_pc  ;
+    assign  write_pc_and    =   ~i_halt_flag    &   i_write_pc                  ;
+    assign  use_dbg_addr    =   debug_mode      &   ~cpu_en                     ;
+    assign  i_Addr          =   use_dbg_addr    ?   i_imem_addr :   current_pc  ;
+
 
     branch_mux          #(
         .NBITS      (NBITS)
@@ -59,7 +67,10 @@ module IF_stage #(
         .DATA_LENGTH    (NBITS)
     )IMROM
     (
-        .i_Addr         (current_pc)    ,
+        .i_Addr         (i_Addr)        ,
+        .i_clk          (i_clk)         ,
+        .We             (i_imem_we)     ,
+        .i_Data         (i_imem_data)   ,
         .o_Data         (IF_inst)
     );
 

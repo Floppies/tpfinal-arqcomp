@@ -216,10 +216,14 @@ module datapath_pipe    #(
     )IFSTAGE
     (
         .i_branch_addr  (selected_addr) ,
+        .i_imem_addr    (dbg_imem_addr) ,
+        .i_imem_data    (dbg_imem_data) ,
         .i_write_pc     (write_pc_eff)  ,
         .i_halt_flag    (halt_in_pipe)  ,
         .i_clk          (i_clk)         ,
         .i_rst          (i_rst)         ,
+        .debug_mode     (debug_mode)    ,
+        .i_imem_we      (dbg_imem_we)   ,
         .cpu_en         (cpu_en)        ,
         .i_branch_flag  (address_sel)   ,
         .o_current_pc   (IF_current_pc) ,

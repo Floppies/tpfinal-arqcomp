@@ -20,7 +20,6 @@ module datapath_pipe_tb();
     //Salidas
     wire    [NBITS-1:0] dbg_reg_data         ;
     wire    [NBITS-1:0] dbg_dmem_data        ;
-    wire    [NBITS-1:0] o_IF_inst            ;
     wire    [NBITS-1:0] o_IF_next_pc         ;
     wire    [NBITS-1:0] o_IF_pc              ;
     wire    [NBITS-1:0] o_ID_inst            ;
@@ -115,7 +114,6 @@ module datapath_pipe_tb();
         .dbg_dmem_addr  (dbg_dmem_addr) ,
         .dbg_reg_data   (dbg_reg_data)  ,
         .dbg_dmem_data  (dbg_dmem_data) ,
-        .o_IF_inst      (o_IF_inst)     ,
         .o_IF_next_pc   (o_IF_next_pc)  ,
         .o_IF_pc        (o_IF_pc)       ,
         .o_ID_inst      (o_ID_inst)     ,
