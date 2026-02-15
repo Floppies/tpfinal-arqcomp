@@ -21,6 +21,7 @@ module debug_unit_tb();
 
     // CPU status/observability (dummy)
     reg                     o_haltflag;
+    reg                     o_pipe_empty;
     reg     [NBITS-1:0]     o_IF_next_pc;
     reg     [NBITS-1:0]     o_IF_pc;
     reg     [NBITS-1:0]     o_ID_inst;
@@ -82,6 +83,7 @@ module debug_unit_tb();
         tx_done         =   1'b0;
 
         o_haltflag      =   1'b0;
+        o_pipe_empty    =   1'b0;
         o_IF_next_pc    =   32'h4;
         o_IF_pc         =   32'h0;
         o_ID_inst       =   32'h00000013;
@@ -130,7 +132,8 @@ module debug_unit_tb();
         // RUN: release debug_mode, then assert halt to stop
         send_byte(CMD_RUN);
         #50;
-        o_haltflag = 1'b1;
+        o_haltflag   = 1'b1;
+        o_pipe_empty = 1'b1;
         #600
 
         // DUMP
@@ -166,6 +169,7 @@ module debug_unit_tb();
         .debug_mode     (debug_mode),
         .step_pulse     (step_pulse),
         .o_haltflag     (o_haltflag),
+        .o_pipe_empty   (o_pipe_empty),
         .o_IF_next_pc   (o_IF_next_pc),
         .o_IF_pc        (o_IF_pc),
         .o_ID_inst      (o_ID_inst),

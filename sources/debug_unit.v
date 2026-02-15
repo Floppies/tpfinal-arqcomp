@@ -32,6 +32,7 @@ module debug_unit #(
 
     // CPU status
     input   wire                    o_haltflag  ,
+    input   wire                    o_pipe_empty,
 
     // Observability wires from CPU
     input   wire    [NBITS-1:0]     o_IF_next_pc,
@@ -72,7 +73,13 @@ module debug_unit #(
     // Debug write access to IMEM (word addressed)
     output  reg                     dbg_imem_we  ,
     output  reg     [NBITS-1:0]     dbg_imem_addr,
-    output  reg     [NBITS-1:0]     dbg_imem_data
+    output  reg     [NBITS-1:0]     dbg_imem_data,
+
+    // State outputs (for LEDs)
+    output  wire    [2:0]           o_top_state ,
+    output  wire    [3:0]           o_load_state,
+    output  wire    [2:0]           o_snap_state,
+    output  wire    [1:0]           o_tx_state
 );
 
     // =========================================================================
@@ -87,6 +94,7 @@ module debug_unit #(
         T_RUN           =   3'd5    ;   //  Running up to the halt flag
 
     reg     [2:0]   top_state   ,   top_next    ;
+    assign  o_top_state     =   top_state  ;
 
     // Commands (single-byte)
     localparam [7:0] 
@@ -178,7 +186,7 @@ module debug_unit #(
             end
 
             T_RUN: begin
-                if (o_haltflag)
+                if (o_pipe_empty)
                     top_next    =   T_PREPARE_DATA  ;
             end
 
@@ -222,6 +230,7 @@ module debug_unit #(
         L_ERR   =   4'd8    ;   
 
     reg [3:0]   l_state     ,   l_next  ;
+    assign  o_load_state    =   l_state ;
 
     reg [15:0]  l_n_words   ,   l_word_i;
     reg [31:0]  l_wbuf      ;
@@ -388,6 +397,7 @@ module debug_unit #(
         S_DONE          =   3'd3    ;
 
     reg [2:0]   s_state ,   s_next  ;
+    assign  o_snap_state    =   s_state ;
 
     // Snapshot storage (pipeline wires)
     reg [NBITS-1:0] snap_IF_inst    ,   snap_IF_next_pc ,   snap_IF_pc  ;
@@ -541,6 +551,7 @@ module debug_unit #(
         X_DONE      =   2'd3    ;
 
     reg [1:0]   x_state ,   x_next  ;
+    assign  o_tx_state      =   x_state ;
     reg [15:0]  tx_ptr  ;
     reg         tx_done_r           ;
 

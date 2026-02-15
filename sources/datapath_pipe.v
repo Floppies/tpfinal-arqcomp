@@ -42,7 +42,8 @@ module datapath_pipe    #(
     output      wire    [NBITS-1:0] o_inst_data     ,   //Data from instruction memory
     output      wire    [NBITS-1:0] o_reg_data      ,   //Data from reg bank
     output      wire    [NBITS-1:0] o_mem_data      ,   //Data from data memory
-    output      wire                o_haltflag
+    output      wire                o_haltflag      ,
+    output      wire                o_pipe_empty
 );
 
     // Parametros locales
@@ -59,10 +60,13 @@ module datapath_pipe    #(
     wire                    IF_ID_write     ;
     wire                    write_pc_eff    ;
     reg                     halt_in_pipe    ;
+    reg                     pipe_empty      ;
+    reg                     wb_halt_d       ;
 
     assign  o_IF_next_pc=   IF_next_pc      ;
     assign  o_IF_pc     =   IF_current_pc   ;
     assign  o_haltflag  =   halt_in_pipe    ;
+    assign  o_pipe_empty=  pipe_empty       ;
 
     // Instruction Decode stage
     wire    [NBITS-1:0]     ID_next_pc      ,
@@ -201,6 +205,22 @@ module datapath_pipe    #(
         else if (cpu_en &   ID_halt)
         begin
             halt_in_pipe    <=  1'b1    ;
+        end
+    end
+
+    // Pipeline empty: assert one cycle after WB_halt deasserts
+    always @(posedge i_clk or posedge i_rst)
+    begin
+        if (i_rst)
+        begin
+            wb_halt_d   <=  1'b0    ;
+            pipe_empty  <=  1'b0    ;
+        end
+        else
+        begin
+            wb_halt_d   <=  WB_halt ;
+            if (wb_halt_d && ~WB_halt)
+                pipe_empty  <=  1'b1    ;
         end
     end
 
