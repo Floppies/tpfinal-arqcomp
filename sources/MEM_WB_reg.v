@@ -22,9 +22,9 @@ module MEM_WB_reg   #(
                     WB_halt     ,   WB_link
 );
 
-always  @(posedge i_clk)
+always  @(posedge i_clk or posedge i_rst)
     begin
-        if  (i_rst  ||  flush)
+        if  (i_rst)
         begin
             WB_result       <=      32'b0           ;
             WB_data         <=      32'b0           ;
@@ -37,14 +37,14 @@ always  @(posedge i_clk)
         end
         else if (cpu_en)
         begin
-            WB_result       <=      MEM_result      ;
-            WB_data         <=      MEM_data        ;
-            WB_next_inst    <=      MEM_next_inst   ;
-            WB_rd           <=      MEM_rd          ;
-            WB_regwrite     <=      MEM_regwrite    ;
-            WB_memtoreg     <=      MEM_memtoreg    ;
-            WB_link         <=      MEM_link        ;
-            WB_halt         <=      MEM_halt        ;
+            WB_result       <=      flush   ?   32'b0       :   MEM_result      ;
+            WB_data         <=      flush   ?   32'b0       :   MEM_data        ;
+            WB_next_inst    <=      flush   ?   32'b0       :   MEM_next_inst   ;
+            WB_rd           <=      flush   ?   5'b0        :   MEM_rd          ;
+            WB_regwrite     <=      flush   ?   1'b0        :   MEM_regwrite    ;
+            WB_memtoreg     <=      flush   ?   1'b0        :   MEM_memtoreg    ;
+            WB_link         <=      flush   ?   1'b0        :   MEM_link        ;
+            WB_halt         <=      flush   ?   1'b0        :   MEM_halt        ;
         end
     end
 

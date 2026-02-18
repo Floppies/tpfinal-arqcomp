@@ -10,10 +10,11 @@ module full_datapath #(
     parameter   SB_TICK         =   16      ,
     parameter   DBIT            =   8       ,
     parameter   IMEM_ADDR_BITS  =   10      ,
-    parameter   DMEM_SNAP_WORDS =   64
+    parameter   DMEM_SNAP_WORDS =   64      ,
+    parameter   USE_CLK_WIZ     =   1
 )
 (
-    input   wire                i_clk       ,
+    input   wire                i_clk_100mhz ,
     input   wire                i_rst       ,
     input   wire                i_rx        ,
     output  wire                o_tx        ,
@@ -33,56 +34,70 @@ module full_datapath #(
     wire                    tx_done     ;
 
     // Debug control signals to datapath
-    wire                    debug_mode  ;
-    wire                    step_pulse  ;
-    wire                    dbg_imem_we ;
-    wire    [NBITS-1:0]     dbg_imem_addr;
-    wire    [NBITS-1:0]     dbg_imem_data;
-    wire    [RBITS-1:0]     dbg_reg_index;
-    wire    [NBITS-1:0]     dbg_dmem_addr;
-    wire                    dbg_dmem_re ;
-    wire    [NBITS-1:0]     dbg_reg_data;
-    wire    [NBITS-1:0]     dbg_dmem_data;
+    wire                    debug_mode      ;
+    wire                    step_pulse      ;
+    wire                    dbg_imem_we     ;
+    wire    [NBITS-1:0]     dbg_imem_addr   ;
+    wire    [NBITS-1:0]     dbg_imem_data   ;
+    wire    [RBITS-1:0]     dbg_reg_index   ;
+    wire    [NBITS-1:0]     dbg_dmem_addr   ;
+    wire                    dbg_dmem_re     ;
+    wire    [NBITS-1:0]     dbg_reg_data    ;
+    wire    [NBITS-1:0]     dbg_dmem_data   ;
 
     // Datapath observability
-    wire    [NBITS-1:0]     o_IF_next_pc ;
-    wire    [NBITS-1:0]     o_IF_pc      ;
-    wire    [NBITS-1:0]     o_ID_inst    ;
-    wire    [NBITS-1:0]     o_ID_next_pc ;
-    wire    [NBITS-1:0]     o_ID_pc      ;
-    wire    [NBITS-1:0]     o_ID_imm     ;
-    wire    [NBITS-1:0]     o_ID_Rs1     ;
-    wire    [NBITS-1:0]     o_ID_Rs2     ;
-    wire    [RBITS-1:0]     o_ID_rd      ;
-    wire    [NBITS-1:0]     o_EX_result  ;
-    wire    [NBITS-1:0]     o_EX_Rs2     ;
-    wire    [RBITS-1:0]     o_EX_rd      ;
-    wire    [NBITS-1:0]     o_MEM_result ;
-    wire    [NBITS-1:0]     o_MEM_data   ;
-    wire    [RBITS-1:0]     o_MEM_rd     ;
-    wire    [NBITS-1:0]     o_WB_data    ;
-    wire    [RBITS-1:0]     o_WB_rd      ;
-    wire    [NBITS-1:0]     o_inst_data  ;
-    wire    [NBITS-1:0]     o_reg_data   ;
-    wire    [NBITS-1:0]     o_mem_data   ;
-    wire                    o_haltflag   ;
-    wire                    o_pipe_empty ;
+    wire    [NBITS-1:0]     o_IF_next_pc    ;
+    wire    [NBITS-1:0]     o_IF_pc         ;
+    wire    [NBITS-1:0]     o_ID_inst       ;
+    wire    [NBITS-1:0]     o_ID_next_pc    ;
+    wire    [NBITS-1:0]     o_ID_pc         ;
+    wire    [NBITS-1:0]     o_ID_imm        ;
+    wire    [NBITS-1:0]     o_ID_Rs1        ;
+    wire    [NBITS-1:0]     o_ID_Rs2        ;
+    wire    [RBITS-1:0]     o_ID_rd         ;
+    wire    [NBITS-1:0]     o_EX_result     ;
+    wire    [NBITS-1:0]     o_EX_Rs2        ;
+    wire    [RBITS-1:0]     o_EX_rd         ;
+    wire    [NBITS-1:0]     o_MEM_result    ;
+    wire    [NBITS-1:0]     o_MEM_data      ;
+    wire    [RBITS-1:0]     o_MEM_rd        ;
+    wire    [NBITS-1:0]     o_WB_data       ;
+    wire    [RBITS-1:0]     o_WB_rd         ;
+    wire                    o_haltflag      ;
+    wire                    o_pipe_empty    ;
+
+    wire clk_50;
+    wire clk_locked;
+    wire rst_sync = i_rst | ~clk_locked;
+
+    generate
+        if (USE_CLK_WIZ) begin : G_CLK_WIZ
+            clk_wiz_0 clk_gen (
+                .clk_in1(i_clk_100mhz),
+                .clk_out1(clk_50),
+                .locked(clk_locked)
+            );
+        end else begin : G_CLK_BYPASS
+            assign clk_50 = i_clk_100mhz;
+            assign clk_locked = 1'b1;
+        end
+    endgenerate
 
     uart_unit #(
-        .SB_TICK    (SB_TICK)  ,
-        .BAUD_DIV   (BAUD_DIV) ,
-        .BAUD_SIZ   (BAUD_SIZ) ,
+        .SB_TICK    (SB_TICK)   ,
+        .BAUD_DIV   (BAUD_DIV)  ,
+        .BAUD_SIZ   (BAUD_SIZ)  ,
         .DBIT       (DBIT)
     )UART
     (
-        .clk        (i_clk)    ,
-        .reset      (i_rst)    ,
-        .rx         (i_rx)     ,
-        .tx_start   (tx_start) ,
-        .tx_Data    (tx_byte)  ,
-        .tx         (o_tx)     ,
-        .tx_done    (tx_done)  ,
-        .rx_done    (rx_done)  ,
+        .clk        (clk_50)    ,
+        .reset      (rst_sync)  ,
+        .rx         (i_rx)      ,
+        .tx_start   (tx_start)  ,
+        .tx_Data    (tx_byte)   ,
+        .tx         (o_tx)      ,
+        .tx_done    (tx_done)   ,
+        .rx_done    (rx_done)   ,
         .rx_Data    (rx_byte)
     );
 
@@ -94,8 +109,8 @@ module full_datapath #(
         .DMEM_SNAP_WORDS    (DMEM_SNAP_WORDS)
     )DEBUG
     (
-        .i_clk          (i_clk)         ,
-        .i_rst          (i_rst)         ,
+        .i_clk          (clk_50)        ,
+        .i_rst          (rst_sync)      ,
         .rx_done        (rx_done)       ,
         .rx_byte        (rx_byte)       ,
         .tx_start       (tx_start)      ,
@@ -122,9 +137,6 @@ module full_datapath #(
         .o_MEM_rd       (o_MEM_rd)      ,
         .o_WB_data      (o_WB_data)     ,
         .o_WB_rd        (o_WB_rd)       ,
-        .o_inst_data    (o_inst_data)   ,
-        .o_reg_data     (o_reg_data)    ,
-        .o_mem_data     (o_mem_data)    ,
         .dbg_reg_index  (dbg_reg_index) ,
         .dbg_reg_data   (dbg_reg_data)  ,
         .dbg_dmem_addr  (dbg_dmem_addr) ,
@@ -146,8 +158,8 @@ module full_datapath #(
         .RBITS      (RBITS)
     )DATAPATH
     (
-        .i_clk          (i_clk)         ,
-        .i_rst          (i_rst)         ,
+        .i_clk          (clk_50)        ,
+        .i_rst          (rst_sync)      ,
         .debug_mode     (debug_mode)    ,
         .step_pulse     (step_pulse)    ,
         .dbg_imem_we    (dbg_imem_we)   ,
@@ -175,9 +187,6 @@ module full_datapath #(
         .o_MEM_rd       (o_MEM_rd)      ,
         .o_WB_data      (o_WB_data)     ,
         .o_WB_rd        (o_WB_rd)       ,
-        .o_inst_data    (o_inst_data)   ,
-        .o_reg_data     (o_reg_data)    ,
-        .o_mem_data     (o_mem_data)    ,
         .o_haltflag     (o_haltflag)    ,
         .o_pipe_empty   (o_pipe_empty)
     );

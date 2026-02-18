@@ -16,19 +16,19 @@ module IF_ID_reg    #(
     output  reg     [MSB-1:0]   ID_inst
 );
 
-always  @(posedge i_clk)
+always  @(posedge i_clk or posedge i_rst)
     begin
-        if  (i_rst  ||  flush)
+        if  (i_rst)
         begin
             ID_next_pc      <=  32'b0           ;
             ID_inst         <=  32'b0           ;
             ID_current_pc   <=  32'b0           ;
         end
-        else if (cpu_en &   We)
+        else if (cpu_en &   (flush   |   We))
         begin
-            ID_next_pc      <=  IF_next_pc      ;
-            ID_inst         <=  IF_inst         ;
-            ID_current_pc   <=  IF_current_pc   ;
+            ID_next_pc      <=  flush   ?   32'b0       :   IF_next_pc      ;
+            ID_inst         <=  flush   ?   32'b0       :   IF_inst         ;
+            ID_current_pc   <=  flush   ?   32'b0       :   IF_current_pc   ;
         end
     end
 

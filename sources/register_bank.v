@@ -29,9 +29,9 @@ always  @(negedge i_clk)
         begin
             // set all registers to their defaults 
             for(i = 0; i < BANK_SIZE; i = i + 1 )
-                reg_bank[i]     =       32'h0   ;
+                reg_bank[i]     <=      32'h0   ;
         end
         else if (enable && (i_regW != 0))
-            reg_bank[i_regW]    =       i_Data  ;   //  Write back the register
+            reg_bank[i_regW]    <=      i_Data  ;   //  Write back the register
     end
 endmodule

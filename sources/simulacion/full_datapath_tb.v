@@ -7,17 +7,18 @@ module full_datapath_tb();
     localparam  NBITS       =   32  ;
     localparam  RBITS       =   5   ;
     localparam  DBIT        =   8   ;
-    localparam  BAUD_DIV    =   163 ;
+    localparam  BAUD_DIV    =   1   ;
     localparam  SB_TICK     =   16  ;
     localparam  BAUD_SIZ    =   8   ;
     localparam  IMEM_ADDR_BITS  =   10  ;
     localparam  DMEM_SNAP_WORDS =   0   ;
+    localparam  USE_CLK_WIZ     =   0   ;
 
     localparam integer CLK_HALF    =   5;
     localparam integer BIT_CYCLES  =   BAUD_DIV * SB_TICK;
 
     // Inputs
-    reg     i_clk   ;
+    reg     i_clk_100mhz ;
     reg     i_rst   ;
     reg     i_rx    ;
 
@@ -34,27 +35,38 @@ module full_datapath_tb();
         begin
             // Start bit
             i_rx = 1'b0;
-            repeat (BIT_CYCLES) @(posedge i_clk);
+            repeat (BIT_CYCLES) @(posedge i_clk_100mhz);
 
             // Data bits LSB first
             for (i = 0; i < 8; i = i + 1) begin
                 i_rx = b[i];
-                repeat (BIT_CYCLES) @(posedge i_clk);
+                repeat (BIT_CYCLES) @(posedge i_clk_100mhz);
             end
 
             // Stop bit
             i_rx = 1'b1;
-            repeat (BIT_CYCLES) @(posedge i_clk);
+            repeat (BIT_CYCLES) @(posedge i_clk_100mhz);
         end
     endtask
 
     initial begin
-        $dumpfile("full_datapath_tb.vcd"); $dumpvars;
-        i_clk   =   1'b0;
+        // Timing-friendly dump: only top-level control pins/state LEDs
+        $dumpfile("full_datapath_tb.vcd");
+        $dumpvars(0,
+            full_datapath_tb.i_clk_100mhz,
+            full_datapath_tb.i_rst,
+            full_datapath_tb.i_rx,
+            full_datapath_tb.o_tx,
+            full_datapath_tb.o_top_state,
+            full_datapath_tb.o_load_state,
+            full_datapath_tb.o_snap_state,
+            full_datapath_tb.o_tx_state
+        );
+        i_clk_100mhz = 1'b0;
         i_rst   =   1'b1;
         i_rx    =   1'b1;
 
-        repeat (10) @(posedge i_clk);
+        repeat (10) @(posedge i_clk_100mhz);
         i_rst = 1'b0;
 
         // LOAD command: 'L' (0x4C)
@@ -93,12 +105,12 @@ module full_datapath_tb();
         send_uart_byte(8'h52);
 
         // Wait some time for execution
-        repeat (20000) @(posedge i_clk);
+        repeat (4000) @(posedge i_clk_100mhz);
         $finish;
     end
 
     always begin
-        #CLK_HALF i_clk = ~i_clk;
+        #CLK_HALF i_clk_100mhz = ~i_clk_100mhz;
     end
 
     full_datapath #(
@@ -111,10 +123,11 @@ module full_datapath_tb();
         .SB_TICK        (SB_TICK)       ,
         .DBIT           (DBIT)          ,
         .IMEM_ADDR_BITS (IMEM_ADDR_BITS),
-        .DMEM_SNAP_WORDS(DMEM_SNAP_WORDS)
+        .DMEM_SNAP_WORDS(DMEM_SNAP_WORDS),
+        .USE_CLK_WIZ     (USE_CLK_WIZ)
     )DUT
     (
-        .i_clk      (i_clk)     ,
+        .i_clk_100mhz(i_clk_100mhz),
         .i_rst      (i_rst)     ,
         .i_rx       (i_rx)      ,
         .o_tx       (o_tx)      ,

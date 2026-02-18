@@ -39,9 +39,6 @@ module datapath_pipe    #(
     output      wire    [RBITS-1:0] o_MEM_rd        ,
     output      wire    [NBITS-1:0] o_WB_data       ,   //WB stage
     output      wire    [RBITS-1:0] o_WB_rd         ,
-    output      wire    [NBITS-1:0] o_inst_data     ,   //Data from instruction memory
-    output      wire    [NBITS-1:0] o_reg_data      ,   //Data from reg bank
-    output      wire    [NBITS-1:0] o_mem_data      ,   //Data from data memory
     output      wire                o_haltflag      ,
     output      wire                o_pipe_empty
 );

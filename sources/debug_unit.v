@@ -57,10 +57,6 @@ module debug_unit #(
     input   wire    [NBITS-1:0]     o_WB_data   ,
     input   wire    [RBITS-1:0]     o_WB_rd     ,
 
-    input   wire    [NBITS-1:0]     o_inst_data ,
-    input   wire    [NBITS-1:0]     o_reg_data  ,
-    input   wire    [NBITS-1:0]     o_mem_data  ,
-
     // Debug read access to regfile (combinational)
     output  reg     [RBITS-1:0]     dbg_reg_index,
     input   wire    [NBITS-1:0]     dbg_reg_data ,
@@ -400,7 +396,7 @@ module debug_unit #(
     assign  o_snap_state    =   s_state ;
 
     // Snapshot storage (pipeline wires)
-    reg [NBITS-1:0] snap_IF_inst    ,   snap_IF_next_pc ,   snap_IF_pc  ;
+    reg [NBITS-1:0] snap_IF_next_pc ,   snap_IF_pc  ;
     reg [NBITS-1:0] snap_ID_inst    ,   snap_ID_next_pc ,   snap_ID_pc  ,
                     snap_ID_imm     ,   snap_ID_Rs1     ,   snap_ID_Rs2 ;
     reg [RBITS-1:0] snap_ID_rd      ;
@@ -443,7 +439,6 @@ module debug_unit #(
 
             if (s_state == S_CAP_LATCHES)
             begin
-                snap_IF_inst    <=  o_inst_data ;
                 snap_IF_next_pc <=  o_IF_next_pc;
                 snap_IF_pc      <=  o_IF_pc     ;
 
@@ -558,7 +553,7 @@ module debug_unit #(
     assign  tx_stream_done  =   tx_done_r   ;
 
     localparam integer PIPE_WORDS =
-        3  + // IF: inst,next_pc,pc
+        2  + // IF: next_pc,pc
         7  + // ID: inst,next_pc,pc,imm,rs1,rs2,rd
         3  + // EX: result,rs2,rd
         3  + // MEM: result,data,rd
@@ -614,24 +609,23 @@ module debug_unit #(
                 if (word_index < PIPE_WORDS)
                 begin
                     case (word_index)
-                        0:  w   =   snap_IF_inst    ;
-                        1:  w   =   snap_IF_next_pc ;
-                        2:  w   =   snap_IF_pc      ;
-                        3:  w   =   snap_ID_inst    ;
-                        4:  w   =   snap_ID_next_pc ;
-                        5:  w   =   snap_ID_pc      ;
-                        6:  w   =   snap_ID_imm     ;
-                        7:  w   =   snap_ID_Rs1     ;
-                        8:  w   =   snap_ID_Rs2     ;
-                        9:  w   =   { {(32-RBITS){1'b0}}, snap_ID_rd }  ;
-                        10: w   =   snap_EX_result  ;
-                        11: w   =   snap_EX_Rs2     ;
-                        12: w   =   { {(32-RBITS){1'b0}}, snap_EX_rd }  ;
-                        13: w   =   snap_MEM_result ;
-                        14: w   =   snap_MEM_data   ;
-                        15: w   =   { {(32-RBITS){1'b0}}, snap_MEM_rd } ;
-                        16: w   =   snap_WB_data    ;
-                        17: w   =   { {(32-RBITS){1'b0}}, snap_WB_rd }  ;
+                        0:  w   =   snap_IF_next_pc ;
+                        1:  w   =   snap_IF_pc      ;
+                        2:  w   =   snap_ID_inst    ;
+                        3:  w   =   snap_ID_next_pc ;
+                        4:  w   =   snap_ID_pc      ;
+                        5:  w   =   snap_ID_imm     ;
+                        6:  w   =   snap_ID_Rs1     ;
+                        7:  w   =   snap_ID_Rs2     ;
+                        8:  w   =   { {(32-RBITS){1'b0}}, snap_ID_rd }  ;
+                        9:  w   =   snap_EX_result  ;
+                        10: w   =   snap_EX_Rs2     ;
+                        11: w   =   { {(32-RBITS){1'b0}}, snap_EX_rd }  ;
+                        12: w   =   snap_MEM_result ;
+                        13: w   =   snap_MEM_data   ;
+                        14: w   =   { {(32-RBITS){1'b0}}, snap_MEM_rd } ;
+                        15: w   =   snap_WB_data    ;
+                        16: w   =   { {(32-RBITS){1'b0}}, snap_WB_rd }  ;
                         default:
                             w   =   32'h0   ;
                     endcase

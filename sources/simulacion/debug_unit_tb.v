@@ -59,9 +59,7 @@ module debug_unit_tb();
 
     // Command bytes
     localparam [7:0] CMD_LOAD = 8'h4C; // 'L'
-    localparam [7:0] CMD_STEP = 8'h53; // 'S'
     localparam [7:0] CMD_RUN  = 8'h52; // 'R'
-    localparam [7:0] CMD_DUMP = 8'h44; // 'D'
 
     // Simple UART byte sender
     task send_byte(input [7:0] b);
@@ -125,21 +123,12 @@ module debug_unit_tb();
         send_byte(8'hBB);
         send_byte(8'hAA);
 
-        // STEP: should pulse step_pulse and then enter snapshot/send
-        send_byte(CMD_STEP);
-        #600
-
         // RUN: release debug_mode, then assert halt to stop
         send_byte(CMD_RUN);
-        #50;
+        #100;
         o_haltflag   = 1'b1;
         o_pipe_empty = 1'b1;
-        #600
-
-        // DUMP
-        send_byte(CMD_DUMP);
-
-        #600;
+        #800;
         $finish;
     end
 

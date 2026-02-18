@@ -37,9 +37,9 @@ module ID_EX_reg    #(
     output  reg     [1:0]           EX_aluop
 );
 
-always  @(posedge i_clk)
+always  @(posedge i_clk or posedge i_rst)
     begin
-        if  (i_rst  ||  ID_EX_flush)
+        if  (i_rst)
         begin
             EX_Rs1          <=      32'b0           ;
             EX_Rs2          <=      32'b0           ;
@@ -64,26 +64,26 @@ always  @(posedge i_clk)
         end
         else if (cpu_en)
         begin
-            EX_Rs1          <=      ID_Rs1          ;
-            EX_Rs2          <=      ID_Rs2          ;
-            EX_immediate    <=      ID_immediate    ;
-            EX_jump_address <=      ID_jump_address ;
-            EX_next_pc      <=      ID_next_pc      ;
-            EX_rd           <=      ID_rd           ;
-            EX_rs1          <=      ID_rs1          ;
-            EX_rs2          <=      ID_rs2          ;
-            EX_funct        <=      ID_funct        ;
-            EX_regwrite     <=      ID_regwrite     ;
-            EX_memtoreg     <=      ID_memtoreg     ;
-            EX_memread      <=      ID_memread      ;
-            EX_memwrite     <=      ID_memwrite     ;
-            EX_alusource    <=      ID_alusource    ;
-            EX_link         <=      ID_link         ;
-            EX_JumpReg      <=      ID_JumpReg      ;
-            EX_BEQ          <=      ID_BEQ          ;
-            EX_BNE          <=      ID_BNE          ;
-            EX_halt         <=      ID_halt         ;
-            EX_aluop        <=      ID_aluop        ;
+            EX_Rs1          <=      ID_EX_flush ?   32'b0       :   ID_Rs1          ;
+            EX_Rs2          <=      ID_EX_flush ?   32'b0       :   ID_Rs2          ;
+            EX_immediate    <=      ID_EX_flush ?   32'b0       :   ID_immediate    ;
+            EX_jump_address <=      ID_EX_flush ?   32'b0       :   ID_jump_address ;
+            EX_next_pc      <=      ID_EX_flush ?   32'b0       :   ID_next_pc      ;
+            EX_rd           <=      ID_EX_flush ?   5'b0        :   ID_rd           ;
+            EX_rs1          <=      ID_EX_flush ?   5'b0        :   ID_rs1          ;
+            EX_rs2          <=      ID_EX_flush ?   5'b0        :   ID_rs2          ;
+            EX_funct        <=      ID_EX_flush ?   4'b0        :   ID_funct        ;
+            EX_regwrite     <=      ID_EX_flush ?   1'b0        :   ID_regwrite     ;
+            EX_memtoreg     <=      ID_EX_flush ?   1'b0        :   ID_memtoreg     ;
+            EX_memread      <=      ID_EX_flush ?   1'b0        :   ID_memread      ;
+            EX_memwrite     <=      ID_EX_flush ?   1'b0        :   ID_memwrite     ;
+            EX_alusource    <=      ID_EX_flush ?   1'b0        :   ID_alusource    ;
+            EX_link         <=      ID_EX_flush ?   1'b0        :   ID_link         ;
+            EX_JumpReg      <=      ID_EX_flush ?   1'b0        :   ID_JumpReg      ;
+            EX_BEQ          <=      ID_EX_flush ?   1'b0        :   ID_BEQ          ;
+            EX_BNE          <=      ID_EX_flush ?   1'b0        :   ID_BNE          ;
+            EX_halt         <=      ID_EX_flush ?   1'b0        :   ID_halt         ;
+            EX_aluop        <=      ID_EX_flush ?   2'b0        :   ID_aluop        ;
         end
     end
 

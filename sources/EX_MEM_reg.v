@@ -27,9 +27,9 @@ module EX_MEM_reg   #(
                     MEM_halt    ,   MEM_link
 );
 
-always  @(posedge i_clk)
+always  @(posedge i_clk or posedge i_rst)
     begin
-        if  (i_rst  ||  flush)
+        if  (i_rst)
         begin
             MEM_result      <=      32'b0           ;
             MEM_next_inst   <=      32'b0           ;
@@ -45,17 +45,17 @@ always  @(posedge i_clk)
         end
         else if (cpu_en)
         begin
-            MEM_result      <=      EX_result       ;
-            MEM_next_inst   <=      EX_next_inst    ;
-            MEM_rs2         <=      EX_rs2          ;
-            MEM_rd          <=      EX_rd           ;
-            MEM_sizecontrol <=      EX_sizecontrol  ;
-            MEM_regwrite    <=      EX_regwrite     ;
-            MEM_memtoreg    <=      EX_memtoreg     ;
-            MEM_memread     <=      EX_memread      ;
-            MEM_memwrite    <=      EX_memwrite     ;
-            MEM_link        <=      EX_link         ;
-            MEM_halt        <=      EX_halt         ;
+            MEM_result      <=      flush   ?   32'b0       :   EX_result       ;
+            MEM_next_inst   <=      flush   ?   32'b0       :   EX_next_inst    ;
+            MEM_rs2         <=      flush   ?   32'b0       :   EX_rs2          ;
+            MEM_rd          <=      flush   ?   5'b0        :   EX_rd           ;
+            MEM_sizecontrol <=      flush   ?   3'b0        :   EX_sizecontrol  ;
+            MEM_regwrite    <=      flush   ?   1'b0        :   EX_regwrite     ;
+            MEM_memtoreg    <=      flush   ?   1'b0        :   EX_memtoreg     ;
+            MEM_memread     <=      flush   ?   1'b0        :   EX_memread      ;
+            MEM_memwrite    <=      flush   ?   1'b0        :   EX_memwrite     ;
+            MEM_link        <=      flush   ?   1'b0        :   EX_link         ;
+            MEM_halt        <=      flush   ?   1'b0        :   EX_halt         ;
         end
     end
 
