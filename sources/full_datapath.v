@@ -10,7 +10,7 @@ module full_datapath #(
     parameter   SB_TICK         =   16      ,
     parameter   DBIT            =   8       ,
     parameter   IMEM_ADDR_BITS  =   10      ,
-    parameter   DMEM_SNAP_WORDS =   64      ,
+    parameter   DMEM_SNAP_WORDS =   4       ,
     parameter   USE_CLK_WIZ     =   1
 )
 (

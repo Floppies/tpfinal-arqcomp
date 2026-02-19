@@ -15,7 +15,11 @@ module instruction_memory   #(
     output  reg     [DATA_LENGTH-1:0]   o_Data
     );
 
-    reg [WORD_WIDTH-1:0]    mem[0:MEM_SIZE-1]   ;
+    localparam integer ADDR_IDX_BITS = $clog2(MEM_SIZE);
+    wire [ADDR_IDX_BITS-1:0] addr_idx;
+    assign addr_idx = i_Addr[ADDR_IDX_BITS-1:0];
+
+    (* ram_style = "block" *) reg [WORD_WIDTH-1:0] mem[0:MEM_SIZE-1];
 
     integer k;
     initial begin
@@ -25,13 +29,13 @@ module instruction_memory   #(
     //Write
     always @(posedge i_clk) begin
         if (We) begin
-            mem[i_Addr] <= i_Data;
+            mem[addr_idx] <= i_Data;
         end
     end
 
     //Read
     always @(*) begin
-        o_Data = mem[i_Addr];
+        o_Data = mem[addr_idx];
     end
 
 endmodule

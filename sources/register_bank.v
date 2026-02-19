@@ -20,10 +20,13 @@ module register_bank    #(
 reg [WORD_WIDTH-1:0]    reg_bank[0:BANK_SIZE-1] ;   //  Banco de Registros
 integer     i       ;
 
-assign  o_rg1D      =   reg_bank[i_reg1]        ;
-assign  o_rg2D      =   reg_bank[i_reg2]        ;
+wire    wr_en;
+assign  wr_en    =   enable && (i_regW != 0);
 
-always  @(negedge i_clk)
+assign  o_rg1D   =   (wr_en && (i_regW == i_reg1)) ? i_Data : reg_bank[i_reg1];
+assign  o_rg2D   =   (wr_en && (i_regW == i_reg2)) ? i_Data : reg_bank[i_reg2];
+
+always  @(posedge i_clk)
     begin
         if  (i_rst)
         begin
@@ -31,7 +34,7 @@ always  @(negedge i_clk)
             for(i = 0; i < BANK_SIZE; i = i + 1 )
                 reg_bank[i]     <=      32'h0   ;
         end
-        else if (enable && (i_regW != 0))
+        else if (wr_en)
             reg_bank[i_regW]    <=      i_Data  ;   //  Write back the register
     end
 endmodule
