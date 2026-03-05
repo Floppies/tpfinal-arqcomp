@@ -1,0 +1,29 @@
+"""Protocol constants shared across CLI modules."""
+
+# Commands
+CMD_LOAD = ord("L")
+CMD_STEP = ord("S")
+CMD_RUN = ord("R")
+CMD_DUMP = ord("D")
+
+# ACK
+ACK_CMD_LOAD = 0x01
+ACK_CMD_STEP = 0x02
+ACK_CMD_DUMP = 0x04
+ACK_LOAD_DONE = 0x10
+ACK_STEP_DONE = 0x11
+ACK_RUN_START = 0x12
+ACK_RUN_DONE = 0x13
+ACK_SNAP_START = 0x14
+ACK_SNAP_DONE = 0x15
+
+# ERR
+ERR_CMD_UNKNOWN = 0x80
+ERR_LOAD_LEN = 0x81
+
+# Snapshot
+SNAP_HEADER = bytes((0xA5, 0x5A))
+PIPE_WORDS = 17
+REG_WORDS = 32
+TOTAL_BASE_WORDS = PIPE_WORDS + REG_WORDS
+
