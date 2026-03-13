@@ -81,7 +81,6 @@ class CliApp:
             print(str(exc))
         return True
 
-
 def _resolve_default_port() -> str:
     try:
         import serial.tools.list_ports  # type: ignore
@@ -174,7 +173,6 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         protocol.link.close()
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
