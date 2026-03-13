@@ -39,7 +39,6 @@ module datapath_pipe    #(
     output      wire    [RBITS-1:0] o_MEM_rd        ,
     output      wire    [NBITS-1:0] o_WB_data       ,   //WB stage
     output      wire    [RBITS-1:0] o_WB_rd         ,
-    output      wire                o_haltflag      ,
     output      wire                o_pipe_empty
 );
 
@@ -62,7 +61,6 @@ module datapath_pipe    #(
 
     assign  o_IF_next_pc=   IF_next_pc      ;
     assign  o_IF_pc     =   IF_current_pc   ;
-    assign  o_haltflag  =   halt_in_pipe    ;
     assign  o_pipe_empty=  pipe_empty       ;
 
     // Instruction Decode stage

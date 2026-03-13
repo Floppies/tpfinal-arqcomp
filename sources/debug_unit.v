@@ -7,6 +7,7 @@
 //   Protocol: 'L' (0x4C) + n_words[15:0] little-endian + n_words*4 bytes (LE)
 // - Sub-FSM SNAPSHOT: captures pipeline wires + 32 regs via one combinational port
 // - Sub-FSM TX: streams snapshot over UART TX (byte-based) using tx_start/tx_done
+//   or sends ACK/ERR bytes.
 // -----------------------------------------------------------------------------
 module debug_unit #(
     parameter       NBITS           =   32  ,
@@ -31,7 +32,6 @@ module debug_unit #(
     output  reg                     step_pulse  ,   // 1-cycle pulse in debug mode
 
     // CPU status
-    input   wire                    o_haltflag  ,
     input   wire                    o_pipe_empty,
 
     // Observability wires from CPU
@@ -87,7 +87,8 @@ module debug_unit #(
         T_STEP_PULSE    =   3'd2    ,   //  Running for a cycle
         T_PREPARE_DATA  =   3'd3    ,   //  Prepare the data snapshot to send
         T_SEND          =   3'd4    ,   //  Sending the snapshot
-        T_RUN           =   3'd5    ;   //  Running up to the halt flag
+        T_RUN           =   3'd5    ,   //  Running up to the halt flag
+        T_STATUS_TX     =   3'd6    ;   //  Sending one-byte ACK/ERR
 
     reg     [2:0]   top_state   ,   top_next    ;
     assign  o_top_state     =   top_state  ;
@@ -99,9 +100,24 @@ module debug_unit #(
         CMD_RUN     =   8'h52   ,   //  'R'
         CMD_DUMP    =   8'h44   ;   //  'D'
 
+    // Status bytes (ACK/ERR)
+    localparam [7:0]
+        ACK_CMD_LOAD     =   8'h01  ,
+        ACK_CMD_STEP     =   8'h02  ,
+        ACK_CMD_DUMP     =   8'h04  ,
+        ACK_LOAD_DONE    =   8'h10  ,
+        ACK_STEP_DONE    =   8'h11  ,
+        ACK_RUN_START    =   8'h12  ,
+        ACK_RUN_DONE     =   8'h13  ,
+        ACK_SNAP_START   =   8'h14  ,
+        ACK_SNAP_DONE    =   8'h15  ,
+        ERR_CMD_UNKNOWN  =   8'h80  ,
+        ERR_LOAD_LEN     =   8'h81  ;
+
     // Latch last received command in IDLE
     reg     cmd_load    ,   cmd_step    ,
-            cmd_run     ,   cmd_dump    ;
+            cmd_run     ,   cmd_dump    ,
+            cmd_err     ;
 
     // Sub-FSM enables
     wire    load_enable =   (top_state  ==  T_LOAD)         ;
@@ -112,11 +128,35 @@ module debug_unit #(
     wire    load_done   ,   load_error      ,
             snap_done   ,   tx_stream_done  ;
 
+    // One-byte status TX context
+    reg     [7:0]   status_code_r        ;
+    reg     [2:0]   status_after_state_r ;
+    reg     [7:0]   status_code_req      ;
+    reg     [2:0]   status_after_req     ;
+
+    wire            status_enable    =   (top_state == T_STATUS_TX)    ;
+    wire            status_done      ;
+
     // TOP sequential
     always @(posedge i_clk or posedge i_rst)
     begin
-        if  (i_rst) top_state   <=  T_IDLE  ;
-        else        top_state   <=  top_next;
+        if  (i_rst)
+        begin
+            top_state            <=  T_IDLE  ;
+            status_code_r        <=  8'h00   ;
+            status_after_state_r <=  T_IDLE  ;
+        end
+        else
+        begin
+            top_state   <=  top_next;
+
+            // Latch status context when entering status TX state
+            if ((top_state != T_STATUS_TX) && (top_next == T_STATUS_TX))
+            begin
+                status_code_r        <=  status_code_req;
+                status_after_state_r <=  status_after_req;
+            end
+        end
     end
 
     // Command decode in IDLE
@@ -127,6 +167,7 @@ module debug_unit #(
                 cmd_step    <=  1'b0    ;
                 cmd_run     <=  1'b0    ;
                 cmd_dump    <=  1'b0    ;
+                cmd_err     <=  1'b0    ;
             end
         else
             begin
@@ -134,6 +175,7 @@ module debug_unit #(
                 cmd_step    <=  1'b0    ;
                 cmd_run     <=  1'b0    ;
                 cmd_dump    <=  1'b0    ;
+                cmd_err     <=  1'b0    ;
 
                 if (top_state == T_IDLE && rx_done)
                 begin
@@ -141,8 +183,93 @@ module debug_unit #(
                     else if (rx_byte    ==  CMD_STEP)   cmd_step    <=  1'b1    ;
                     else if (rx_byte    ==  CMD_RUN )   cmd_run     <=  1'b1    ;
                     else if (rx_byte    ==  CMD_DUMP)   cmd_dump    <=  1'b1    ;
+                    else                                cmd_err     <=  1'b1    ;
                 end
             end
+    end
+
+    // Status code mapping for transitions that enter T_STATUS_TX
+    always @* begin
+        status_code_req  =   8'h00   ;
+        status_after_req =   T_IDLE  ;
+
+        case (top_state)
+            T_IDLE:
+            begin
+                if      (cmd_load)
+                begin
+                    status_code_req  =   ACK_CMD_LOAD ;
+                    status_after_req =   T_LOAD       ;
+                end
+                else if (cmd_step)
+                begin
+                    status_code_req  =   ACK_CMD_STEP ;
+                    status_after_req =   T_STEP_PULSE ;
+                end
+                else if (cmd_dump)
+                begin
+                    status_code_req  =   ACK_CMD_DUMP     ;
+                    status_after_req =   T_PREPARE_DATA   ;
+                end
+                else if (cmd_run)
+                begin
+                    status_code_req  =   ACK_RUN_START    ;
+                    status_after_req =   T_RUN            ;
+                end
+                else if (cmd_err)
+                begin
+                    status_code_req  =   ERR_CMD_UNKNOWN  ;
+                    status_after_req =   T_IDLE           ;
+                end
+            end
+
+            T_LOAD:
+            begin
+                if      (load_done)
+                begin
+                    status_code_req  =   ACK_LOAD_DONE    ;
+                    status_after_req =   T_IDLE           ;
+                end
+                else if (load_error)
+                begin
+                    status_code_req  =   ERR_LOAD_LEN     ;
+                    status_after_req =   T_IDLE           ;
+                end
+            end
+
+            T_STEP_PULSE:
+            begin
+                status_code_req  =   ACK_STEP_DONE    ;
+                status_after_req =   T_PREPARE_DATA   ;
+            end
+
+            T_PREPARE_DATA:
+            begin
+                if (snap_done)
+                begin
+                    status_code_req  =   ACK_SNAP_START   ;
+                    status_after_req =   T_SEND           ;
+                end
+            end
+
+            T_SEND:
+            begin
+                if (tx_stream_done)
+                begin
+                    status_code_req  =   ACK_SNAP_DONE    ;
+                    status_after_req =   T_IDLE           ;
+                end
+            end
+
+            T_RUN:
+            begin
+                if (o_pipe_empty)
+                begin
+                    status_code_req  =   ACK_RUN_DONE     ;
+                    status_after_req =   T_PREPARE_DATA   ;
+                end
+            end
+        endcase
     end
 
     // TOP next-state logic
@@ -152,38 +279,42 @@ module debug_unit #(
         case (top_state)
             T_IDLE:
             begin
-                if      (cmd_load)  top_next    =   T_LOAD          ;
-                else if (cmd_step)  top_next    =   T_STEP_PULSE    ;
-                else if (cmd_dump)  top_next    =   T_PREPARE_DATA  ;
-                else if (cmd_run )  top_next    =   T_RUN           ;
+                if (cmd_load || cmd_step || cmd_dump || cmd_run || cmd_err)
+                    top_next    =   T_STATUS_TX ;
             end
 
             T_LOAD:
             begin
                 if  (load_done  ||  load_error)
-                    top_next    =   T_IDLE  ;
+                    top_next    =   T_STATUS_TX ;
             end
 
             T_STEP_PULSE:
             begin
-                top_next    =   T_PREPARE_DATA  ;
+                top_next    =   T_STATUS_TX ;
             end
 
             T_PREPARE_DATA:
             begin
                 if  (snap_done)
-                    top_next    =   T_SEND  ;
+                    top_next    =   T_STATUS_TX ;
             end
 
             T_SEND:
             begin
                 if  (tx_stream_done)
-                    top_next    =   T_IDLE  ;
+                    top_next    =   T_STATUS_TX ;
             end
 
             T_RUN: begin
                 if (o_pipe_empty)
-                    top_next    =   T_PREPARE_DATA  ;
+                    top_next    =   T_STATUS_TX ;
+            end
+
+            T_STATUS_TX:
+            begin
+                if (status_done)
+                    top_next    =   status_after_state_r ;
             end
 
             default:
@@ -207,6 +338,7 @@ module debug_unit #(
             T_PREPARE_DATA:debug_mode = 1'b1;
             T_SEND:        debug_mode = 1'b1;
             T_RUN:         debug_mode = 1'b0;
+            T_STATUS_TX:   debug_mode = 1'b1;
             default:       debug_mode = 1'b1;
         endcase
     end
@@ -540,6 +672,60 @@ module debug_unit #(
     // 4) SUB-FSM: TX STREAM (byte-by-byte)
     // =========================================================================
     localparam  [1:0]
+        Z_IDLE      =   2'd0    ,
+        Z_PULSE     =   2'd1    ,
+        Z_WAIT_DONE =   2'd2    ,
+        Z_DONE      =   2'd3    ;
+
+    reg [1:0]   z_state  ,   z_next  ;
+    reg         tx_start_status       ;
+    reg [7:0]   tx_byte_status        ;
+
+    assign  status_done  =   (z_state == Z_DONE) ;
+
+    // Status TX sequential
+    always @(posedge i_clk or posedge i_rst)
+    begin
+        if (i_rst)
+            z_state  <=  Z_IDLE  ;
+        else if (!status_enable)
+            z_state  <=  Z_IDLE  ;
+        else
+            z_state  <=  z_next  ;
+    end
+
+    // Status TX combinational
+    always @*
+    begin
+        z_next          =   z_state         ;
+        tx_start_status =   1'b0            ;
+        tx_byte_status  =   status_code_r   ;
+
+        case (z_state)
+            Z_IDLE:
+                z_next  =   Z_PULSE ;
+
+            Z_PULSE:
+            begin
+                tx_start_status =   1'b1        ;
+                z_next          =   Z_WAIT_DONE ;
+            end
+
+            Z_WAIT_DONE:
+            begin
+                if (tx_done)
+                    z_next  =   Z_DONE  ;
+            end
+
+            Z_DONE:
+                z_next  =   Z_DONE  ;
+
+            default:
+                z_next  =   Z_IDLE  ;
+        endcase
+    end
+
+    localparam  [1:0]
         X_IDLE      =   2'd0    ,
         X_PULSE     =   2'd1    ,
         X_WAIT_DONE =   2'd2    ,
@@ -548,7 +734,9 @@ module debug_unit #(
     reg [1:0]   x_state ,   x_next  ;
     assign  o_tx_state      =   x_state ;
     reg [15:0]  tx_ptr  ;
-    reg         tx_done_r           ;
+    reg         tx_done_r       ;
+    reg         tx_start_stream ;
+    reg [7:0]   tx_byte_stream  ;
 
     assign  tx_stream_done  =   tx_done_r   ;
 
@@ -661,26 +849,26 @@ module debug_unit #(
     always @* begin
         x_next      =   x_state ;
         tx_done_r   =   1'b0    ;
-        tx_start    =   1'b0    ;
-        tx_byte     =   8'h00   ;
+        tx_start_stream = 1'b0  ;
+        tx_byte_stream  = 8'h00 ;
 
         case (x_state)
             X_IDLE:
             begin
-                tx_byte =   get_stream_byte(tx_ptr) ;
-                x_next  =   X_PULSE                 ;
+                tx_byte_stream  =   get_stream_byte(tx_ptr) ;
+                x_next          =   X_PULSE                 ;
             end
 
             X_PULSE:
             begin
-                tx_byte =   get_stream_byte(tx_ptr) ;
-                tx_start=   1'b1                    ;
-                x_next  =   X_WAIT_DONE             ;
+                tx_byte_stream  =   get_stream_byte(tx_ptr) ;
+                tx_start_stream =   1'b1                    ;
+                x_next          =   X_WAIT_DONE             ;
             end
 
             X_WAIT_DONE:
             begin
-                tx_byte =   get_stream_byte(tx_ptr) ;
+                tx_byte_stream  =   get_stream_byte(tx_ptr) ;
                 if (tx_done)
                 begin
                     if (tx_ptr == (TX_TOTAL_BYTES - 1))
@@ -702,6 +890,24 @@ module debug_unit #(
             default:
                 x_next      =   X_IDLE  ;
         endcase
+    end
+
+    // TX output mux: status byte has priority while in T_STATUS_TX
+    always @*
+    begin
+        tx_start =   1'b0    ;
+        tx_byte  =   8'h00   ;
+
+        if (status_enable)
+        begin
+            tx_start =   tx_start_status ;
+            tx_byte  =   tx_byte_status  ;
+        end
+        else if (tx_enable)
+        begin
+            tx_start =   tx_start_stream ;
+            tx_byte  =   tx_byte_stream  ;
+        end
     end
 
 endmodule

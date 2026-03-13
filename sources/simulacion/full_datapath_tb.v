@@ -16,6 +16,24 @@ module full_datapath_tb();
 
     localparam integer CLK_HALF    =   5;
     localparam integer BIT_CYCLES  =   BAUD_DIV * SB_TICK;
+    localparam integer PIPE_WORDS  =   17;
+    localparam integer REG_WORDS   =   32;
+    localparam integer SNAP_BYTES  =   2 + (PIPE_WORDS + REG_WORDS + DMEM_SNAP_WORDS) * 4;
+
+    // Top-state aliases
+    localparam [2:0] T_IDLE      = 3'd0;
+
+    // Commands
+    localparam [7:0] CMD_LOAD = 8'h4C; // 'L'
+    localparam [7:0] CMD_RUN  = 8'h52; // 'R'
+
+    // Status bytes
+    localparam [7:0] ACK_CMD_LOAD   = 8'h01;
+    localparam [7:0] ACK_LOAD_DONE  = 8'h10;
+    localparam [7:0] ACK_RUN_START  = 8'h12;
+    localparam [7:0] ACK_RUN_DONE   = 8'h13;
+    localparam [7:0] ACK_SNAP_START = 8'h14;
+    localparam [7:0] ACK_SNAP_DONE  = 8'h15;
 
     // Inputs
     reg     i_clk_100mhz ;
@@ -28,6 +46,14 @@ module full_datapath_tb();
     wire    [3:0]   o_load_state;
     wire    [2:0]   o_snap_state;
     wire    [1:0]   o_tx_state  ;
+
+    // UART monitor for DUT TX
+    reg                 mon_tx_start;
+    reg     [DBIT-1:0]  mon_tx_data ;
+    wire                mon_tx;
+    wire                mon_tx_done;
+    wire                mon_rx_done;
+    wire    [DBIT-1:0]  mon_rx_data;
 
     // UART byte sender (8N1)
     task send_uart_byte(input [7:0] b);
@@ -49,6 +75,56 @@ module full_datapath_tb();
         end
     endtask
 
+    task wait_top_state(input [2:0] st);
+    begin
+        while (o_top_state != st) @(posedge i_clk_100mhz);
+    end
+    endtask
+
+    task wait_next_tx_byte;
+        integer guard;
+    begin
+        guard = 0;
+
+        if (mon_rx_done === 1'b1)
+            @(posedge i_clk_100mhz);
+
+        while (mon_rx_done !== 1'b1)
+        begin
+            @(posedge i_clk_100mhz);
+            guard = guard + 1;
+            if (guard > 200000)
+            begin
+                $display("ERROR: timeout waiting DUT TX byte");
+                $fatal;
+            end
+        end
+    end
+    endtask
+
+    task check_next_tx_byte(input [7:0] exp);
+    begin
+        wait_next_tx_byte();
+        if (mon_rx_data !== exp)
+        begin
+            $display("ERROR: DUT TX=0x%02h expected 0x%02h", mon_rx_data, exp);
+            $fatal;
+        end
+        @(negedge mon_rx_done);
+    end
+    endtask
+
+    task skip_tx_bytes(input integer n);
+        integer j;
+    begin
+        for (j = 0; j < n; j = j + 1)
+        begin
+            wait_next_tx_byte();
+            @(negedge mon_rx_done);
+        end
+    end
+    endtask
+
     initial begin
         // Timing-friendly dump: only top-level control pins/state LEDs
         $dumpfile("full_datapath_tb.vcd");
@@ -57,6 +133,8 @@ module full_datapath_tb();
             full_datapath_tb.i_rst,
             full_datapath_tb.i_rx,
             full_datapath_tb.o_tx,
+            full_datapath_tb.mon_rx_done,
+            full_datapath_tb.mon_rx_data,
             full_datapath_tb.o_top_state,
             full_datapath_tb.o_load_state,
             full_datapath_tb.o_snap_state,
@@ -65,47 +143,65 @@ module full_datapath_tb();
         i_clk_100mhz = 1'b0;
         i_rst   =   1'b1;
         i_rx    =   1'b1;
+        mon_tx_start = 1'b0;
+        mon_tx_data  = {DBIT{1'b0}};
 
         repeat (10) @(posedge i_clk_100mhz);
         i_rst = 1'b0;
+        wait_top_state(T_IDLE);
+        @(posedge i_clk_100mhz);
 
-        // LOAD command: 'L' (0x4C)
-        send_uart_byte(8'h4C);
+        // LOAD command
+        send_uart_byte(CMD_LOAD);
+        check_next_tx_byte(ACK_CMD_LOAD);
+
         // n_words = 5 (little-endian)
         send_uart_byte(8'h05);
         send_uart_byte(8'h00);
 
-        // Word 0: 0x00500093 (addi x1,x0,5)
+        // Program words (little-endian bytes):
+        // 00000000010100000000000010010011 = 0x00500093
         send_uart_byte(8'h93);
         send_uart_byte(8'h00);
         send_uart_byte(8'h50);
         send_uart_byte(8'h00);
-        // Word 1: 0x00700113 (addi x2,x0,7)
+        // 00000000011100000000000100010011 = 0x00700113
         send_uart_byte(8'h13);
         send_uart_byte(8'h01);
         send_uart_byte(8'h70);
         send_uart_byte(8'h00);
-        // Word 2: 0x002081B3 (add x3,x1,x2)
+        // 00000000001000001000000110110011 = 0x002081B3
         send_uart_byte(8'hB3);
         send_uart_byte(8'h81);
         send_uart_byte(8'h20);
         send_uart_byte(8'h00);
-        // Word 3: 0x00302023 (sw x3,0(x0))
+        // 00000000001100000010000000100011 = 0x00302023
         send_uart_byte(8'h23);
         send_uart_byte(8'h20);
         send_uart_byte(8'h30);
         send_uart_byte(8'h00);
-        // Word 4: 0xFFFFFFFF (halt)
+        // 11111111111111111111111111111111 = 0xFFFFFFFF
         send_uart_byte(8'hFF);
         send_uart_byte(8'hFF);
         send_uart_byte(8'hFF);
         send_uart_byte(8'hFF);
 
-        // RUN command: 'R' (0x52)
-        send_uart_byte(8'h52);
+        check_next_tx_byte(ACK_LOAD_DONE);
 
-        // Wait some time for execution
-        repeat (4000) @(posedge i_clk_100mhz);
+        // RUN command
+        send_uart_byte(CMD_RUN);
+        check_next_tx_byte(ACK_RUN_START);
+
+        // RUN done + snapshot framing + payload + SNAP_DONE
+        check_next_tx_byte(ACK_RUN_DONE);
+        check_next_tx_byte(ACK_SNAP_START);
+        check_next_tx_byte(8'hA5);
+        check_next_tx_byte(8'h5A);
+        skip_tx_bytes(SNAP_BYTES - 2);
+        check_next_tx_byte(ACK_SNAP_DONE);
+
+        $display("PASS: full_datapath LOAD/RUN + ACK/snapshot protocol verified");
+        repeat (100) @(posedge i_clk_100mhz);
         $finish;
     end
 
@@ -135,6 +231,23 @@ module full_datapath_tb();
         .o_load_state(o_load_state),
         .o_snap_state(o_snap_state),
         .o_tx_state (o_tx_state)
+    );
+
+    uart_unit #(
+        .SB_TICK    (SB_TICK),
+        .BAUD_DIV   (BAUD_DIV),
+        .BAUD_SIZ   (BAUD_SIZ),
+        .DBIT       (DBIT)
+    ) UART_MON (
+        .clk        (i_clk_100mhz),
+        .reset      (i_rst),
+        .rx         (o_tx),
+        .tx_start   (mon_tx_start),
+        .tx_Data    (mon_tx_data),
+        .tx         (mon_tx),
+        .tx_done    (mon_tx_done),
+        .rx_done    (mon_rx_done),
+        .rx_Data    (mon_rx_data)
     );
 
 endmodule

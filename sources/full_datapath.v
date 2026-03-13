@@ -63,7 +63,6 @@ module full_datapath #(
     wire    [RBITS-1:0]     o_MEM_rd        ;
     wire    [NBITS-1:0]     o_WB_data       ;
     wire    [RBITS-1:0]     o_WB_rd         ;
-    wire                    o_haltflag      ;
     wire                    o_pipe_empty    ;
 
     wire clk_50;
@@ -118,7 +117,6 @@ module full_datapath #(
         .tx_done        (tx_done)       ,
         .debug_mode     (debug_mode)    ,
         .step_pulse     (step_pulse)    ,
-        .o_haltflag     (o_haltflag)    ,
         .o_pipe_empty   (o_pipe_empty)  ,
         .o_IF_next_pc   (o_IF_next_pc)  ,
         .o_IF_pc        (o_IF_pc)       ,
@@ -187,7 +185,6 @@ module full_datapath #(
         .o_MEM_rd       (o_MEM_rd)      ,
         .o_WB_data      (o_WB_data)     ,
         .o_WB_rd        (o_WB_rd)       ,
-        .o_haltflag     (o_haltflag)    ,
         .o_pipe_empty   (o_pipe_empty)
     );
 
