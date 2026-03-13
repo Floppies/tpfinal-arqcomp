@@ -1,4 +1,4 @@
-# FPGA Debug CLI Skeleton (RTL-Aligned)
+# FPGA Debug CLI (RTL-Aligned)
 
 This folder contains a primary Python skeleton for a UART CLI that talks to the FPGA `debug_unit` protocol in `sources/debug_unit.v`.
 
@@ -10,7 +10,7 @@ This folder contains a primary Python skeleton for a UART CLI that talks to the 
 - `errors.py`: typed errors
 - `serial_link.py`: pyserial wrapper
 - `protocol.py`: command FSM / UART transaction logic
-- `assembler.py`: parser + pseudo expansion + encoder stubs
+- `assembler.py`: parser + pseudo expansion + instruction encoder
 - `snapshot.py`: decode + pretty-print snapshots
 
 ## Command behavior
@@ -35,11 +35,14 @@ This skeleton follows current RTL behavior:
 python -m cli.cli -port COM5 -baud 115200 -timeout 1.5 -dmem-words 4
 ```
 
-## Notes on assembler scope
+## Assembler support (current)
 
-Current assembler is intentionally skeleton-only:
+- Pseudos: `nop`, `halt`, `j`, `jr`
+- R-type: `add`, `sub`, `and`, `or`, `xor`, `sll`, `srl`, `sra`, `slt`, `sltu`
+- Aliases: `sllv`, `srlv`, `srav`, `addiu`, `lwu`
+- Loads/Stores: `lb`, `lh`, `lw`, `lbu`, `lhu`, `sb`, `sh`, `sw`
+- Branch/Jump: `beq`, `bne`, `jal`, `jalr`, `lui`
+- Directive: `.word`
 
-- Implemented: parsing, label pass, pseudo expansion, HALT auto-append
-- Not implemented yet: full instruction encoding (`AssemblerError` is raised)
-- `.word` directives are encoded and can be used for immediate testing
-
+`nor` is supported as a 2-instruction pseudo expansion:
+`or rd, rs1, rs2` + `xori rd, rd, -1`
