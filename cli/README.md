@@ -35,6 +35,80 @@ This skeleton follows current RTL behavior:
 python -m cli.cli -port COM5 -baud 115200 -timeout 1.5 -dmem-words 4
 ```
 
+## Hardware validation
+
+The repo includes short programs that were validated on the Basys 3 build and are useful as smoke tests after generating a new bitstream.
+
+### 1. Dependency / forwarding test
+
+Run:
+
+```text
+load dependency_program.asm
+run
+```
+
+Expected final architectural state:
+
+- `x1 = 0x00000005`
+- `x2 = 0x00000007`
+- `x3 = 0x0000000C`
+- `x4 = 0x00000011`
+- `x5 = 0x00000011`
+- `x6 = 0x00000018`
+- `mem[0] = 0x00000011`
+
+Notes:
+
+- This checks ALU forwarding and a `lw` -> use dependency.
+- The program also stores `x6` at word address `4`, so it will not appear in the default `dmem-words = 4` snapshot window.
+
+### 2. Branch / flush test
+
+Run:
+
+```text
+load branch_program.asm
+run
+```
+
+Expected final architectural state:
+
+- `x1 = 0x00000003`
+- `x2 = 0x00000003`
+- `x3 = 0x00000001`
+- `x4 = 0x00000002`
+- `x5 = 0x00000000`
+- `x6 = 0x00000003`
+- `mem[0] = 0x00000003`
+
+Notes:
+
+- This checks `beq`, `bne`, and wrong-path flush behavior.
+- `x5` must stay `0`; if it becomes non-zero, a wrong-path instruction executed.
+
+### 3. JAL / JR / JALR return test
+
+Run:
+
+```text
+load jalr_program.asm
+run
+```
+
+Expected final architectural state:
+
+- `x1 = 0x00000002`
+- `x2 = 0x00000005`
+- `x3 = 0x00000007`
+- `x4 = 0x00000003`
+- `mem[0] = 0x00000007`
+
+Notes:
+
+- This checks `jal`, register return via `jr`/`jalr`, and control-flow recovery after returning from a subroutine.
+- The internal PC in this design is word-addressed, so link/register jump values are expressed in instruction indices rather than byte addresses.
+
 ## Assembler support (current)
 
 - Pseudos: `nop`, `halt`, `j`, `jr`
