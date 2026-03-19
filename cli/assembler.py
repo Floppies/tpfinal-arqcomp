@@ -341,6 +341,8 @@ def _parse_mem_operand(token: str, inst: Instruction) -> tuple[int, int]:
 
 def _resolve_label_or_imm(token: str, labels: dict[str, int], pc_index: int, inst: Instruction) -> int:
     if token in labels:
+        # Labels are assembled as standard byte offsets between 32-bit instructions.
+        # The RTL converts branch/jump offsets to its internal word-addressed PC domain.
         return (labels[token] - pc_index) * 4
     return _parse_int(token, inst.line_no, inst.line_text)
 
