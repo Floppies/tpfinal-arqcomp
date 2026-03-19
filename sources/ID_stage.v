@@ -19,6 +19,7 @@ module ID_stage #(
     output  wire    [NBITS-1:0]     o_jump_address  ,   //JAL target address
     output  wire    [NBITS-1:0]     o_Data1         ,
     output  wire    [NBITS-1:0]     o_Data2         ,
+    output  wire    [NBITS-1:0]     o_dbg_data      ,
     output  wire    [NBITS-1:0]     o_immediate     ,
     output  wire    [RBITS-1:0]     o_ID_rs1        ,
     output  wire    [RBITS-1:0]     o_ID_rs2        ,
@@ -31,7 +32,7 @@ module ID_stage #(
     wire    [NBITS-1:0] immediate   ;
     wire                enable_bank ;
 
-    assign  rs1         =   debug_mode ? dbg_reg_index  :   i_ID_instruction[19:15] ;
+    assign  rs1         =   i_ID_instruction[19:15] ;
     assign  rs2         =   i_ID_instruction[24:20] ;
     assign  enable_bank =   cpu_en  &   i_regwrite  ;
 
@@ -56,10 +57,12 @@ module ID_stage #(
         .enable         (enable_bank)        ,
         .i_reg1         (rs1)               ,
         .i_reg2         (rs2)               ,
+        .i_dbg_reg      (dbg_reg_index)     ,
         .i_regW         (i_reg_address)     ,
         .i_Data         (i_reg_data)        ,
         .o_rg1D         (o_Data1)           ,
-        .o_rg2D         (o_Data2)
+        .o_rg2D         (o_Data2)           ,
+        .o_dbgD         (o_dbg_data)
     );
 
     imm_gen         #(

@@ -33,7 +33,7 @@ Desarrollo del TP Final de Arquitectura de Computadoras
 
 ## Consigna
 
-Implementar el pipeline de 5 etapas del procesador MIPS.
+Implementar el pipeline de 5 etapas un procesador RISC-V.
 
 ## Requerimientos
 
@@ -48,7 +48,7 @@ Implementar el pipeline de 5 etapas del procesador MIPS.
 ### Instrucciones a implementar
 
 - **R-type**
-SLL, SRL, SRA, SLLV, SRLV, SRAV, ADDU, SUBU, AND, OR, XOR, NOR, SLT
+SLL, SRL, SRA, SLLV, SRLV, SRAV, ADD, SUB, AND, OR, XOR, NOR, SLT, SLTU
 
 - **I-Type**
 LB, LH, LW, LWU, LBU, LHU, SB, SH,SW, ADDI, ANDI, ORI, XORI, LUI, SLTI, BEQ, BNE, J, JAL
@@ -57,6 +57,12 @@ LB, LH, LW, LWU, LBU, LHU, SB, SH,SW, ADDI, ANDI, ORI, XORI, LUI, SLTI, BEQ, BNE
 JR, JALR
 
 Todas estas instrucciones estas especificadas en el ISA del MIPS.
+
+**NOTA:** Se soportan 4 pseudo instrucciones.
+- `nop` → `0x00000000` = Agrega una burbuja 
+- `halt` → `0xFFFFFFFF`
+- `j label` → `jal x0, label`
+- `jr rs1` → `jalr x0, rs1, 0`
 
 ### Riesgos
 

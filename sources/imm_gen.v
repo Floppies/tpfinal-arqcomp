@@ -15,13 +15,19 @@ module imm_gen #(
 );
 
     wire [6:0] opcode = instr[6:0];
+    wire signed [11:0] jarl_imm12 = instr[31:20];
+    wire signed [NBITS-1:0] jarl_imm_words = $signed({{20{jarl_imm12[11]}}, jarl_imm12}) >>> 2;
 
     always @(*) begin
         case (opcode)
             `OPIMM  , // OP-IMM (addi, andi, ori, xori, slti, sltiu)
-            `LOAD   ,
-            `JARL   :
+            `LOAD   :
                 imm = {{20{instr[31]}}, instr[31:20]}   ;   // I-type
+
+            `JARL   :
+                // This design uses a word-addressed PC/register jump target, so
+                // jalr immediates are converted from bytes to instruction words.
+                imm = jarl_imm_words;
 
             `STORE  :
                 imm = {{20{instr[31]}}, instr[31:25], instr[11:7]}  ;   // S-type

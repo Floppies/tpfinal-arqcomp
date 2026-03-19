@@ -9,7 +9,8 @@ module hazard_detection_unit    #(
     input   wire                    ID_EX_memread       ,
     input   wire                    ID_EX_alusrc        ,
     input   wire                    ID_EX_memwrite      ,
-    input   wire                    redirect            ,
+    input   wire                    redirect_ifid       ,
+    input   wire                    redirect_idex       ,
     //Outputs
     output  reg     write_pc,       IFID_write          ,
                     IFID_flush,     IDEX_flush
@@ -31,8 +32,11 @@ module hazard_detection_unit    #(
         IDEX_flush  =   0   ;
         IFID_flush  =   0   ;
 
-        // Flush IF/ID on redirect (control hazard), but ONLY if not stalling
-        IFID_flush  = redirect & (~stall)   ;
+        // On redirect, kill both younger instructions:
+        // - IF/ID holds the instruction in decode
+        // - ID/EX would otherwise latch that wrong-path instruction into EX
+        IFID_flush  = redirect_ifid & (~stall)   ;
+        IDEX_flush  = redirect_idex & (~stall)   ;
 
         // Stall has priority over redirect
         if (stall) begin

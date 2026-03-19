@@ -5,7 +5,7 @@ module full_datapath #(
     parameter   BANK_SIZE       =   32      ,
     parameter   NBITS           =   32      ,
     parameter   RBITS           =   5       ,
-    parameter   BAUD_DIV        =   163     ,
+    parameter   BAUD_DIV        =   27      ,
     parameter   BAUD_SIZ        =   8       ,
     parameter   SB_TICK         =   16      ,
     parameter   DBIT            =   8       ,
@@ -23,7 +23,11 @@ module full_datapath #(
     output  wire    [2:0]       o_top_state ,
     output  wire    [3:0]       o_load_state,
     output  wire    [2:0]       o_snap_state,
-    output  wire    [1:0]       o_tx_state
+    output  wire    [1:0]       o_tx_state  ,
+
+    // Diagnostic outputs
+    output  wire                o_diag_clk_locked,
+    output  wire                o_diag_rst_sync
 );
 
     // UART <-> Debug Unit
@@ -68,6 +72,9 @@ module full_datapath #(
     wire clk_50;
     wire clk_locked;
     wire rst_sync = i_rst | ~clk_locked;
+
+    assign o_diag_clk_locked = clk_locked;
+    assign o_diag_rst_sync   = rst_sync;
 
     generate
         if (USE_CLK_WIZ) begin : G_CLK_WIZ

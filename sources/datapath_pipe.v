@@ -70,6 +70,7 @@ module datapath_pipe    #(
                             ID_jump_address ,   //JAL target address
                             ID_Data1        ,
                             ID_Data2        ,
+                            ID_dbg_data     ,
                             ID_immediate    ;
     wire    [RBITS-1:0]     ID_rs1          ,
                             ID_rs2          ,
@@ -86,7 +87,7 @@ module datapath_pipe    #(
     assign  o_ID_rd     =   ID_rd           ;
     assign  o_ID_Rs1    =   ID_Data1        ;
     assign  o_ID_Rs2    =   ID_Data2        ;
-    assign  dbg_reg_data=   ID_Data1        ;
+    assign  dbg_reg_data=   ID_dbg_data     ;
     
     // Execution stage
     wire    [NBITS-1:0]     EX_Data1        ,
@@ -174,15 +175,24 @@ module datapath_pipe    #(
     wire    [NBITS-1:0]     reg_jump        ;
     wire    [1:0]           branch_sel      ;
     wire    cond_jump   ,   incond_jump     ,
-            address_sel ,   branch_taken    ;
+            address_sel ,   branch_taken    ,
+            redirect_ifid,  redirect_idex   ,
+            jump_id     ,   jump_ex         ;
 
 
     assign  cond_jump       =   (EX_zero & EX_beq)  |   (~EX_zero & EX_bne) ;
-    assign  incond_jump     =   ID_jump     |   EX_jumpreg      ;
+    // JAL redirects from ID using the precomputed target address.
+    assign  jump_id         =   ID_jump & ~ID_jumpreg;
+    // JALR/JR must wait until EX, where rs1 + imm has been computed.
+    assign  jump_ex         =   EX_jumpreg;
+    assign  incond_jump     =   jump_id | jump_ex;
     assign  branch_taken    =   EX_beq      |   EX_bne          ;
-    assign  branch_sel      =   {EX_jumpreg ,   branch_taken}   ;
+    assign  branch_sel      =   {jump_ex    ,   branch_taken}   ;
     assign  address_sel     =   cond_jump   |   incond_jump     ;
-    assign  reg_jump        =   EX_ALU_result   &   ~1          ;
+    assign  redirect_ifid   =   address_sel;
+    assign  redirect_idex   =   cond_jump | jump_ex;
+    // JALR/JR targets live in the same word-addressed domain as the internal PC.
+    assign  reg_jump        =   EX_ALU_result               ;
 
     // Halt control
     assign  IF_ID_write     =   HDU_IFID_write  &   ~halt_in_pipe   ;
@@ -197,7 +207,8 @@ module datapath_pipe    #(
         begin
             halt_in_pipe    <=  1'b0    ;
         end
-        else if (cpu_en &   ID_halt)
+        // Ignore HALT instructions that are being flushed due to a redirect.
+        else if (cpu_en & ID_halt & ~IF_ID_flush)
         begin
             halt_in_pipe    <=  1'b1    ;
         end
@@ -285,6 +296,7 @@ module datapath_pipe    #(
         .o_jump_address     (ID_jump_address)   ,
         .o_Data1            (ID_Data1)          ,
         .o_Data2            (ID_Data2)          ,
+        .o_dbg_data         (ID_dbg_data)       ,
         .o_immediate        (ID_immediate)      ,
         .o_ID_rs1           (ID_rs1)            ,
         .o_ID_rs2           (ID_rs2)            ,
@@ -504,7 +516,8 @@ module datapath_pipe    #(
         .ID_EX_memread      (EX_memread)    ,
         .ID_EX_alusrc       (EX_alusource)  ,
         .ID_EX_memwrite     (EX_memwrite)   ,
-        .redirect           (address_sel)   ,
+        .redirect_ifid      (redirect_ifid) ,
+        .redirect_idex      (redirect_idex) ,
         .write_pc           (HDU_write_pc)  ,
         .IFID_write         (HDU_IFID_write),
         .IFID_flush         (HDU_IFID_flush),

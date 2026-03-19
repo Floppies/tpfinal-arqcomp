@@ -46,6 +46,8 @@ module full_datapath_tb();
     wire    [3:0]   o_load_state;
     wire    [2:0]   o_snap_state;
     wire    [1:0]   o_tx_state  ;
+    wire            o_diag_clk_locked;
+    wire            o_diag_rst_sync;
 
     // UART monitor for DUT TX
     reg                 mon_tx_start;
@@ -138,7 +140,9 @@ module full_datapath_tb();
             full_datapath_tb.o_top_state,
             full_datapath_tb.o_load_state,
             full_datapath_tb.o_snap_state,
-            full_datapath_tb.o_tx_state
+            full_datapath_tb.o_tx_state,
+            full_datapath_tb.o_diag_clk_locked,
+            full_datapath_tb.o_diag_rst_sync
         );
         i_clk_100mhz = 1'b0;
         i_rst   =   1'b1;
@@ -230,7 +234,9 @@ module full_datapath_tb();
         .o_top_state(o_top_state),
         .o_load_state(o_load_state),
         .o_snap_state(o_snap_state),
-        .o_tx_state (o_tx_state)
+        .o_tx_state (o_tx_state),
+        .o_diag_clk_locked(o_diag_clk_locked),
+        .o_diag_rst_sync(o_diag_rst_sync)
     );
 
     uart_unit #(

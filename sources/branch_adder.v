@@ -10,6 +10,10 @@ module branch_adder #(
     output  wire    [MSB-1:0]   branch_addr         //  Target Address
 );
 
-    assign branch_addr  =   current_pc  + offset    ;
+    wire signed [MSB-1:0] offset_words;
+
+    // The ISA immediate is encoded in bytes, but this design uses a word-addressed PC.
+    assign offset_words = $signed(offset) >>> 2;
+    assign branch_addr  = current_pc + offset_words;
     
 endmodule

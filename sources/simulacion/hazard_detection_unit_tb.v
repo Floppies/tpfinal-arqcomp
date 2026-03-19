@@ -12,7 +12,8 @@ module hazard_detection_unit_tb();
     reg                     id_ex_mr       ;
     reg                     id_ex_alusrc   ;
     reg                     id_ex_memwrite ;
-    reg                     redirect       ;
+    reg                     redirect_ifid  ;
+    reg                     redirect_idex  ;
 
     //Salidas
     wire    write_pc    ,   ifid_write  ,
@@ -26,7 +27,8 @@ module hazard_detection_unit_tb();
         id_ex_mr       =   0   ;
         id_ex_alusrc   =   0   ;
         id_ex_memwrite =   0   ;
-        redirect       =   0   ;
+        redirect_ifid  =   0   ;
+        redirect_idex  =   0   ;
 
         // No stall, no redirect
         #10
@@ -57,13 +59,15 @@ module hazard_detection_unit_tb();
         // Redirect flush when not stalling
         #10
         id_ex_mr       =   0   ;
-        redirect       =   1   ;
+        redirect_ifid  =   1   ;
+        redirect_idex  =   1   ;
 
         // Redirect should be masked by stall
         #10
         id_ex_mr       =   1   ;
         id_ex_rd       =   2   ;
-        redirect       =   1   ;
+        redirect_ifid  =   1   ;
+        redirect_idex  =   1   ;
 
         #10
         $finish;
@@ -80,7 +84,8 @@ module hazard_detection_unit_tb();
         .ID_EX_memread      (id_ex_mr)      ,
         .ID_EX_alusrc       (id_ex_alusrc)  ,
         .ID_EX_memwrite     (id_ex_memwrite),
-        .redirect           (redirect)      ,
+        .redirect_ifid      (redirect_ifid) ,
+        .redirect_idex      (redirect_idex) ,
         .write_pc           (write_pc)      ,
         .IFID_write         (ifid_write)    ,
         .IFID_flush         (ifid_flush)    ,

@@ -10,10 +10,12 @@ module register_bank    #(
     input   wire    i_clk,  i_rst,  enable      ,
     input   wire    [ADDR_LENGTH-1:0]   i_reg1  ,
     input   wire    [ADDR_LENGTH-1:0]   i_reg2  ,
+    input   wire    [ADDR_LENGTH-1:0]   i_dbg_reg,
     input   wire    [ADDR_LENGTH-1:0]   i_regW  ,
     input   wire    [DATA_LENGTH-1:0]   i_Data  ,
     output  wire    [DATA_LENGTH-1:0]   o_rg1D  ,
-    output  wire    [DATA_LENGTH-1:0]   o_rg2D
+    output  wire    [DATA_LENGTH-1:0]   o_rg2D  ,
+    output  wire    [DATA_LENGTH-1:0]   o_dbgD
     
 );
 
@@ -25,6 +27,7 @@ assign  wr_en    =   enable && (i_regW != 0);
 
 assign  o_rg1D   =   (wr_en && (i_regW == i_reg1)) ? i_Data : reg_bank[i_reg1];
 assign  o_rg2D   =   (wr_en && (i_regW == i_reg2)) ? i_Data : reg_bank[i_reg2];
+assign  o_dbgD   =   (wr_en && (i_regW == i_dbg_reg)) ? i_Data : reg_bank[i_dbg_reg];
 
 always  @(posedge i_clk)
     begin
