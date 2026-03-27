@@ -46,9 +46,9 @@ Implementar el pipeline de 5 etapas un procesador RISC-V.
 
 ### Etapas a implementar
 
-- **IF (Instruction Fetch):** BÃºsqueda de la instrucciÃ³n en la memoria de programa.
-- **ID (Instruction Decode):** DecodificaciÃ³n de la instrucciÃ³n y lectura de registros.
-- **EX (Excecute):** EjecuciÃ³n de la instrucciÃ³n.
+- **IF (Instruction Fetch):** Busqueda de la instruccion en la memoria de programa.
+- **ID (Instruction Decode):** Decodificacion de la instruccion y lectura de registros.
+- **EX (Excecute):** Ejecucion de la instruccion.
 - **MEM (Memory Access):** Lectura o escritura desde/hacia la memoria de datos.
 - **WB (Write back):** Escritura de resultados en los registros.
 
@@ -66,53 +66,53 @@ JR, JALR
 Todas estas instrucciones estan contempladas por el assembler y por el hardware del proyecto.
 
 **NOTA:** Se soportan 4 pseudo instrucciones.
-- `nop` â†’ `0x00000000` = Agrega una burbuja 
-- `halt` â†’ `0xFFFFFFFF`
-- `j label` â†’ `jal x0, label`
-- `jr rs1` â†’ `jalr x0, rs1, 0`
+- `nop` = `0x00000000` = Agrega una burbuja 
+- `halt` = `0xFFFFFFFF`
+- `j label` = `jal x0, label`
+- `jr rs1` = `jalr x0, rs1, 0`
 
 ### Riesgos
 
 El procesador debe tener soporte para los siguientes tipos:
 - Estructurales: Se producen cuando dos instrucciones tratan de utilizar el mismo recurso en el mismo ciclo.
 - De datos: Se intenta utilizar un dato antes de que estÃ© preparado. Mantenimiento del orden estricto de lecturas y escrituras.
-- De control: Intentar tomar una decisiÃ³n sobre una condiciÃ³n todavÃ­a no evaluada.
+- De control: Intentar tomar una decision sobre una condicion todavi­a no evaluada.
 
 Para dar soporte a los riesgos nombrados se debe implementar las dos unidades riesgos:
 - Unidad de Cortocircuitos (Forwarding Unit)
-- Unidad de DetecciÃ³n de Riesgos (Hazard Detection Unit)
+- Unidad de Deteccion de Riesgos (Hazard Detection Unit)
 
 ### Debug Unit
 
-Se debe simular una unidad de Debug que envÃ­e informaciÃ³n hacia y desde el procesador mediante UART. Se debe enviar a travÃ©s de la UART:
+Se debe simular una unidad de Debug que envi­e informacion hacia y desde el procesador mediante UART. Se debe enviar a traves de la UART:
 - Registros de las etapas del RISC-V
 - Contenido de los 32 registros
 - Contenido de la memoria de datos (cuyo largo debe ser determinado de antemano)
 
 El funcionamiento de la Debug Unit consiste en:
-- Antes de estar disponible para ejecutar, el procesador estÃ¡ a la espera para recibir un programa mediante la Debug Unit.
-- Una vez cargado el programa, debe permitir **dos modos de operaciÃ³n**:
-    - **Continuo:** Se envÃ­a un comando a la FPGA por la UART y esta inicia la ejecuciÃ³n del programa hasta llegar al final del mismo (InstrucciÃ³n HALT). Llegado ese punto se muestran todos los valores indicados en pantalla.
+- Antes de estar disponible para ejecutar, el procesador esta a la espera para recibir un programa mediante la Debug Unit.
+- Una vez cargado el programa, debe permitir **dos modos de operacion**:
+    - **Continuo:** Se envÃ­a un comando a la FPGA por la UART y esta inicia la ejecucion del programa hasta llegar al final del mismo (Instruccion HALT). Llegado ese punto se muestran todos los valores indicados en pantalla.
     - **Paso a paso:** Enviando un comando por la UART se ejecuta un ciclo de Clock. Se debe mostrar a cada paso los valores indicados.
 
 ### Otros Requerimientos
 
 - El programa a ejecutar debe ser cargado en la memoria de programa mediante un archivo ensamblado.
-- Debe implementarse un programa ensamblador que convierte cÃ³digo assembler de RISC-V a codigo de instruccion.
+- Debe implementarse un programa ensamblador que convierte codigo assembler de RISC-V a codigo de instruccion.
 - Debe transmitirse ese programa mediante interfaz UART antes de comenzar a ejecutar.
 
-## DiseÃ±o del RISC-V
+## Diseño del RISC-V
 
-El diseÃ±o del pipeline final con las cinco etapas es el siguiente:
+El diseño del pipeline final con las cinco etapas es el siguiente:
 
 <img src="imagenes/RISCV_diagram.jpg" alt="Diagrama RISC-V" width="900"/>
 
 
-En este diseÃ±o estan contempladas todas las instrucciones requeridas y se han resuelto todos los riesgos.
+En este diseño estan contempladas todas las instrucciones requeridas y se han resuelto todos los riesgos.
 
-### MÃ³dulos especiales
+### Modulos especiales
 
-En el pipeline se encuentran varios registros y multiplexores para poder llevar el control de los datos y de instrucciones. Entre ellos hay ciertos mÃ³dulos que se analizarÃ¡n en profundidad a continuaciÃ³n:
+En el pipeline se encuentran varios registros y multiplexores para poder llevar el control de los datos y de instrucciones. Entre ellos hay ciertos modulos que se analizaran en profundidad a continuacion:
 
 #### Registros de etapas
 
@@ -124,29 +124,29 @@ Los registros IF/ID, ID/EX, EX/MEM y MEM/WB sirven para guardar todos los datos 
 
 En esta unidad se decodifica la instruccion. Consiste de una series de seÃ±ales que actuan como flags y que manejan el control de todas las instrucciones.
 
-<img src="imagenes/control_unit.png" alt="Modulo Control Unit" width="300"/>
+<img src="imagenes/control_unit.PNG" alt="Modulo Control Unit" width="300"/>
 
-Las seÃ±ales de control significan lo siguiente:
-- **Halt_flag**: Bandera que seÃ±ala que llego una instrucciÃ³n HALT por ende el procesador se tiene que detener cuando Ã©sta llegue a la Ãºltima etapa.
-- **BNE_flag**: Bandera que levanta una instrucciÃ³n BNE (Branch Not Equal).
-- **BEQ_flag**: Bandera que levanta una instrucciÃ³n BEQ (Branch Equal).
-- **Jump_flag**: Bandera que levanta una instrucciÃ³n de salto incondicional.
+Las señales de control significan lo siguiente:
+- **Halt_flag**: Bandera que señala que llego una instruccion HALT por ende el procesador se tiene que detener cuando esta llegue a la ultima etapa.
+- **BNE_flag**: Bandera que levanta una instruccion BNE (Branch Not Equal).
+- **BEQ_flag**: Bandera que levanta una instruccion BEQ (Branch Equal).
+- **Jump_flag**: Bandera que levanta una instruccion de salto incondicional.
 - **Jump_reg**: Indica si el salto es hacia un registro (caso JALR).
-- **Link_flag**: Bandera que seÃ±aliza que hay que guardar el PC actual y hacer un salto. Es levantada por las instrucciones JAL y JALR.
+- **Link_flag**: Bandera que señaliza que hay que guardar el PC actual y hacer un salto. Es levantada por las instrucciones JAL y JALR.
 - **Reg_write**: Bandera que indica que se va a escribir en el banco de registros.
 - **Mem_to_Reg**: Bandera que indica que lo que se va a escribir en el banco de registros es un dato de la memoria o el resultado de la ALU.
 - **Mem_read**: Bandera que indica que se va a leer la memoria de datos.
 - **Mem_write**: Bandera que indica que se va a escribir en la memoria de datos.
 - **ALU_source**: Bandera que indica si un operando de la ALU va a ser el immediate o un registro.
-- **ALU_op**: SeÃ±al de 2 bits que completa la informaciÃ³n que necesita el controlador de la ALU para poder saber que operaciÃ³n tiene que realizar la ALU.
+- **ALU_op**: Señal de 2 bits que completa la informacion que necesita el controlador de la ALU para poder saber que operacion tiene que realizar la ALU.
 
-Estas seÃ±ales se setean dependiendo de `i_opcode` que es igual a {funct3,opcode}, que son partes de la instruccion. La tabla de control es la siguiente:
+Estas señales se setean dependiendo de `i_opcode` que es igual a {funct3,opcode}, que son partes de la instruccion. La tabla de control es la siguiente:
 
-| InstrucciÃ³n / Tipo        | RegWrite | MemRead | MemWrite | ALUSrc | Branch | Jump | JumpReg | Link | ALUOp |
+| Instruccion / Tipo        | RegWrite | MemRead | MemWrite | ALUSrc | Branch | Jump | JumpReg | Link | ALUOp |
 |--------------------------|----------|---------|----------|--------|--------|------|---------|------|-------|
-| R-type (ADD, SUB, ANDâ€¦)  |    1     |    0    |    0     |   0    |   0    |  0   |    0    |  0   |  10   |
-| I-type ALU (ADDI, ANDIâ€¦) |    1     |    0    |    0     |   1    |   0    |  0   |    0    |  0   |  10   |
-| Load (LB, LH, LWâ€¦)       |    1     |    1    |    0     |   1    |   0    |  0   |    0    |  0   |  00   |
+| R-type (ADD, SUB, AND)  |    1     |    0    |    0     |   0    |   0    |  0   |    0    |  0   |  10   |
+| I-type ALU (ADDI, ANDI) |    1     |    0    |    0     |   1    |   0    |  0   |    0    |  0   |  10   |
+| Load (LB, LH, LW)       |    1     |    1    |    0     |   1    |   0    |  0   |    0    |  0   |  00   |
 | Store (SB, SH, SW)       |    0     |    0    |    1     |   1    |   0    |  0   |    0    |  0   |  00   |
 | Branch (BEQ, BNE)        |    0     |    0    |    0     |   0    |   1    |  0   |    0    |  0   |  01   |
 | J (pseudo = JAL x0)      |    0     |    0    |    0     |   X    |   0    |  1   |    0    |  0   |  XX   |
@@ -164,7 +164,7 @@ Esta unidad recibe como entradas a:
 - `i_funct` que es `funct7[5], funct3` de la instruccion.
 
 La tabla de verdad es la siguiente:
-| ALU_op | i_funct[3] (funct7) | i_funct[2:0] (funct3) | ALU_control | OperaciÃ³n | Instrucciones tÃ­picas |
+| ALU_op | i_funct[3] (funct7) | i_funct[2:0] (funct3) | ALU_control | Operacion | Instrucciones ti­picas |
 |--------|----------------------|------------------------|-------------|-----------|------------------------|
 | `00`   | `x`                  | `xxx`                  | `0000`      | `ADD`     | `load`, `store`, `auipc`, `jalr` |
 | `01`   | `x`                  | `xxx`                  | `0001`      | `SUB`     | comparaciÃ³n de branches |
@@ -183,11 +183,11 @@ La tabla de verdad es la siguiente:
 
 #### Unidad de Cortocircuito (Forwarding Unit)
 
-Esta unidad controla los datos que van a ser los operandos de la instrucciÃ³n que se encuentra en la etapa ID. Sirve para eliminar los riesgos RAW que se generan a utilizar un procesador segmentado.
+Esta unidad controla los datos que van a ser los operandos de la instruccion que se encuentra en la etapa ID. Sirve para eliminar los riesgos RAW que se generan a utilizar un procesador segmentado.
 
 <img src="imagenes/Forwarding_unit.PNG" alt="Modulo Forwarding Unit" width="400"/>
 
-Dependiendo de ciertas seÃ±ales de control, las salidas de esta unidad son selectores de multiplexores que eligen cuales seran los Rsx. Las opciones son los registros que salen del banco, los datos de la etapa EX, MEM o WB. La lÃ³gica para rs1 es la siguiente:
+Dependiendo de ciertas seÃ±ales de control, las salidas de esta unidad son selectores de multiplexores que eligen cuales seran los Rsx. Las opciones son los registros que salen del banco, los datos de la etapa EX, MEM o WB. La logica para rs1 es la siguiente:
 ``` verilog
 //  Forwarding rs1 for EX Stage or for JALR
     always  @(*)
@@ -224,7 +224,7 @@ Esta unidad controla la inserciÃ³n de "burbujas" para evitar riesgos RAW que s
 
 <img src="imagenes/hdu.png" alt="Modulo Hazard Detection Unit" width="400"/>
 
- Mientras no se detecte ningÃºn riesgo, el procesador funciona normalmente (writePC = 1). Cuando hay que esperar que se cargue un dato, se inserta la burbuja. Es decir que el PC no se actualiza al igual que todos los registros de IF/ID y los registros de ID/EX se cargan con 0s (burbuja).
+ Mientras no se detecte ningun riesgo, el procesador funciona normalmente (writePC = 1). Cuando hay que esperar que se cargue un dato, se inserta la burbuja. Es decir que el PC no se actualiza al igual que todos los registros de IF/ID y los registros de ID/EX se cargan con 0s (burbuja).
 
 ``` v
     always  @(*)
@@ -252,7 +252,7 @@ Esta unidad controla la inserciÃ³n de "burbujas" para evitar riesgos RAW que s
 - `redirect_ifid` es 1 cuando hay algun salto condicional o incondicional detectado en id.
 - `redirect_idex` sucede cuando hay un salto condicional o cuando hay una bandera de salto incondicional en EX. Esto ocurre, por ejemplo, en un redirect por `JALR`.
 
-#### MÃ³dulos con modificaciones especiales para ciertas instrucciones
+#### Modulos con modificaciones especiales para ciertas instrucciones
 
 - Para las instrucciones `JAL` y `JALR` se agrega el flag `Link`, que permite que en WB se escriba la siguiente direccion secuencial en el registro destino `rd` de la instruccion.
 - Para manejar los loads y stores con tamaÃ±os diferentes se utiliza funct3 de las instrucciones que es llevada a traves del pipeline hasta la MEM stage. Esto permite guardar y cargar datos con tamaÃ±os de WORD, HALFWORD y BYTE y signed y unsigned.
@@ -300,7 +300,7 @@ always  @(*)
         endcase
     end
 ```
-### SoluciÃ³n de Riesgos
+### Solucion de Riesgos
 
 #### Riesgos RAW (LDE)
 
@@ -389,7 +389,7 @@ Las consecuencias de esta decision son:
 - `jalr` convierte primero el inmediato y luego calcula el target como `rs1 + imm` en EX.
 - La CLI debe configurarse con la misma cantidad de palabras de DMEM que exporta el hardware; en la configuracion actual, el valor correcto es `-dmem-words 4`.
 
-## DiseÃ±o de la Debug Unit
+## Diseño de la Debug Unit
 
 ### Estructura
 La Debug Unit esta formada por 5 maquinas de estado:
@@ -508,7 +508,7 @@ El orden exacto de las `17` palabras del pipeline es el siguiente:
 | `15` | `WB_data` |
 | `16` | `WB_rd` |
 
-## DiseÃ±o Completo
+## Diseño Completo
 
 El Diagrama completo esta formado por:
 
@@ -593,7 +593,7 @@ Los testbenches cubren, entre otros, los siguientes bloques:
 
 En particular, `debug_unit_tb.v` y `full_datapath_tb.v` verifican el protocolo de ACKs, el framing del snapshot y el flujo completo `LOAD -> RUN/STEP/DUMP -> snapshot`.
 
-### AnÃ¡lisis de Tiempo
+### Analisis de Tiempo
 
 <img src="imagenes/timing.png" alt="Diagrama completo" width="800"/>
 
