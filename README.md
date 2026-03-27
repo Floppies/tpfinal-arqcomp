@@ -167,7 +167,7 @@ La tabla de verdad es la siguiente:
 | ALU_op | i_funct[3] (funct7) | i_funct[2:0] (funct3) | ALU_control | Operacion | Instrucciones ti­picas |
 |--------|----------------------|------------------------|-------------|-----------|------------------------|
 | `00`   | `x`                  | `xxx`                  | `0000`      | `ADD`     | `load`, `store`, `auipc`, `jalr` |
-| `01`   | `x`                  | `xxx`                  | `0001`      | `SUB`     | comparaciÃ³n de branches |
+| `01`   | `x`                  | `xxx`                  | `0001`      | `SUB`     | comparacion de branches |
 | `10`   | `0`                  | `000`                  | `0000`      | `ADD`     | `add`, `addi` |
 | `10`   | `1`                  | `000`                  | `0001`      | `SUB`     | `sub` |
 | `10`   | `x`                  | `001`                  | `1000`      | `SLL`     | `sll`, `slli` |
@@ -220,7 +220,7 @@ always  @(*)
 
 #### Hazard Detection Unit
 
-Esta unidad controla la inserciÃ³n de "burbujas" para evitar riesgos RAW que surgen por las instrucciones LOAD.
+Esta unidad controla la insercion de "burbujas" para evitar riesgos RAW que surgen por las instrucciones LOAD.
 
 <img src="imagenes/hdu.png" alt="Modulo Hazard Detection Unit" width="400"/>
 
@@ -353,14 +353,13 @@ Si el branch es tomado, el flujo queda:
 | 1 | IF  |    |    |    |
 | 2 | ID  | IF |    |    |
 | 3 | EX  | ID | IF |    |
-| 4 | MEM | ID (flush) | IF (flush) |    |
-| 5 | WB  | EX (burbuja) | ID (burbuja) | IF |
-| 6 |     |    |    | ID |
-| 7 |     |    |    | EX |
-| 8 |     |    |    | MEM |
-| 9 |     |    |    | WB |
+| 4 | MEM | EX (burbuja) | ID (burbuja) | IF |
+| 5 | WB  |    |    | ID |
+| 6 |     |    |    | EX |
+| 7 |     |    |    | MEM |
+| 8 |     |    |    | WB |
 
-Cuando `beq` llega a EX se realiza la comparacion con la ALU. Si la condicion se cumple, se activa el redirect del `PC`, se descarta la instruccion que estaba en `IF/ID` y tambien se limpia `ID/EX` para que la instruccion que venia por el camino incorrecto no llegue a ejecutarse. Por eso un branch tomado introduce dos burbujas. Si el branch no es tomado, el pipeline sigue por el camino secuencial sin flush.
+Cuando `beq` llega a EX se realiza la comparacion con la ALU. Si la condicion se cumple, en ese mismo cambio de ciclo se redirige el `PC` hacia el target, se descarta la instruccion que estaba en `IF/ID` y tambien se limpia `ID/EX` para que la instruccion que venia por el camino incorrecto no llegue a ejecutarse. Por eso en el ciclo siguiente `xor` ya aparece en IF, mientras que EX e ID contienen burbujas. Si el branch no es tomado, el pipeline sigue por el camino secuencial sin flush.
 
 #### Logica de saltos
 
@@ -597,18 +596,20 @@ En particular, `debug_unit_tb.v` y `full_datapath_tb.v` verifican el protocolo d
 
 <img src="imagenes/timing.png" alt="Diagrama completo" width="800"/>
 
-El resumen de timing de la implementacion indica que **todas las restricciones temporales fueron cumplidas**. El clock de entrada fue restringido a `100 MHz` (periodo de `10.000 ns`) y el reporte muestra un **Worst Negative Slack (WNS) de `0.606 ns`**, por lo que el camino critico todavia conserva margen positivo. Eso implica que el retardo maximo efectivo del diseño esta alrededor de `9.394 ns`, lo que equivale aproximadamente a una frecuencia limite de `106.5 MHz`.
+El resumen de timing de la implementacion indica que **todas las restricciones temporales fueron cumplidas**. La placa Basys 3 entrega un clock de entrada de `100 MHz` sobre `i_clk_100mhz`, que es el clock restringido en el archivo de constraints con un periodo de `10.000 ns`. Sin embargo, el diseño final no usa ese clock directamente: el `Clock Wizard` genera a partir de él un clock interno de `50 MHz`, que es el que alimenta al `uart_unit`, a la `Debug Unit` y al datapath del procesador.
+
+Sobre esa restriccion de entrada a `50 MHz`, el reporte muestra un **Worst Negative Slack (WNS) de `0.606 ns`**, por lo que el camino critico todavia conserva margen positivo. Eso implica que el retardo maximo efectivo del diseño esta alrededor de `19.394 ns`, lo que equivale aproximadamente a una frecuencia limite de `52 MHz` para esa red de clock analizada.
 
 En cuanto a las restricciones de hold, el resultado tambien es correcto: el **Worst Hold Slack (WHS) es `0.045 ns`** y no hay endpoints fallidos. El margen es mas ajustado que en setup, pero sigue siendo positivo, por lo que no aparecen violaciones de hold en la implementacion final.
 
-Finalmente, el analisis de ancho de pulso tambien es satisfactorio, con un **Worst Pulse Width Slack (WPWS) de `3.000 ns`**. En conjunto, estos resultados muestran que el procesador y la Debug Unit pueden operar de forma confiable a la frecuencia objetivo de la placa, sin necesidad de reducir el clock ni de introducir etapas adicionales de pipeline por motivos temporales.
+Finalmente, el analisis de ancho de pulso tambien es satisfactorio, con un **Worst Pulse Width Slack (WPWS) de `3.000 ns`**. En conjunto, estos resultados muestran que el diseño cumple timing con holgura. Dado que la logica principal opera internamente a `50 MHz`, el margen temporal real de funcionamiento es aun mayor que el exigido por la restriccion de `100 MHz` de la entrada de placa.
 
-El resultado de **WNS** denota cual es la frecuencia maxima que se puede utilizar en este diseño. La frecuencia máxima es 106 MHz, aproximadamente. El calculo es el siguiente:
+El resultado de **WNS** permite estimar una frecuencia maxima teorica aproximada de `52 MHz` para el dominio evaluado en el reporte. De todos modos, la frecuencia efectiva de operacion del procesador en el bitstream final es `50 MHz`, porque ese es el clock generado por el `Clock Wizard`. El calculo del limite teorico queda:
 
 $$T_{clock} - D_{max} = WNS$$
 $$T_{clock} - WNS = D_{max}$$
-$$10ns - 0.606ns = 9.394ns$$
-$$F_{max} = 1/D_{max} = 106.450 MHz$$
+$$20ns - 0.606ns = 19.394ns$$
+$$F_{max} = 1/D_{max} = 51.57 MHz$$
 
 ## Bibliografi­a
 
