@@ -11,32 +11,32 @@ Desarrollo del TP Final de Arquitectura de Computadoras
     - [Riesgos](#riesgos)
     - [Debug Unit](#debug-unit)
     - [Otros Requerimientos](#otros-requerimientos)
-  - [DiseÃ±o del RISC-V](#diseño-del-risc-v)
-    - [MÃ³dulos especiales](#módulos-especiales)
+  - [Diseño del RISC-V](#diseño-del-risc-v)
+    - [Modulos especiales](#modulos-especiales)
       - [Registros de etapas](#registros-de-etapas)
       - [Unidad de Control (Control Unit)](#unidad-de-control-control-unit)
       - [ALU control](#alu-control)
       - [Unidad de Cortocircuito (Forwarding Unit)](#unidad-de-cortocircuito-forwarding-unit)
       - [Hazard Detection Unit](#hazard-detection-unit)
-      - [MÃ³dulos con modificaciones especiales para ciertas instrucciones](#módulos-con-modificaciones-especiales-para-ciertas-instrucciones)
-    - [SoluciÃ³n de Riesgos](#solución-de-riesgos)
+      - [Modulos con modificaciones especiales para ciertas instrucciones](#modulos-con-modificaciones-especiales-para-ciertas-instrucciones)
+    - [Solucion de Riesgos](#solucion-de-riesgos)
       - [Riesgos RAW (LDE)](#riesgos-raw-lde)
       - [Riesgos de Control](#riesgos-de-control)
       - [Logica de saltos](#logica-de-saltos)
     - [Mapa de memoria y direccionamiento](#mapa-de-memoria-y-direccionamiento)
-  - [DiseÃ±o de la Debug Unit](#diseño-de-la-debug-unit)
+  - [Diseño de la Debug Unit](#diseño-de-la-debug-unit)
     - [Estructura](#estructura)
     - [Protocolo de ACKs](#protocolo-de-acks)
     - [Formato del snapshot](#formato-del-snapshot)
-  - [DiseÃ±o Completo](#diseño-completo)
+  - [Diseño Completo](#diseño-completo)
   - [Programa ensamblador](#programa-ensamblador)
     - [Uso basico](#uso-basico)
     - [Soporte actual](#soporte-actual)
   - [Testing](#testing)
     - [Testeo de instrucciones y riesgos solucionados](#testeo-de-instrucciones-y-riesgos-solucionados)
     - [Testeo de modulos](#testeo-de-modulos)
-    - [AnÃ¡lisis de Tiempo](#análisis-de-tiempo)
-  - [BibliografÃ­a](#bibliografía)
+    - [Analisis de Tiempo](#analisis-de-tiempo)
+  - [Bibliografi­a](#bibliografia)
 
 ## Consigna
 
@@ -124,7 +124,7 @@ Los registros IF/ID, ID/EX, EX/MEM y MEM/WB sirven para guardar todos los datos 
 
 En esta unidad se decodifica la instruccion. Consiste de una series de seÃ±ales que actuan como flags y que manejan el control de todas las instrucciones.
 
-<img src="imagenes/control_unit.PNG" alt="Modulo Control Unit" width="300"/>
+<img src="imagenes/Control_Unit.PNG" alt="Modulo Control Unit" width="300"/>
 
 Las señales de control significan lo siguiente:
 - **Halt_flag**: Bandera que señala que llego una instruccion HALT por ende el procesador se tiene que detener cuando esta llegue a la ultima etapa.
@@ -610,7 +610,7 @@ $$T_{clock} - WNS = D_{max}$$
 $$10ns - 0.606ns = 9.394ns$$
 $$F_{max} = 1/D_{max} = 106.450 MHz$$
 
-## BibliografÃ­a
+## Bibliografi­a
 
 - "Computer Organization and Design : RISC-V Edition" - Patterson, Hennesy.
 - "Computer Architecture: A Quantitative Approach" - Patterson, Hennesy.
