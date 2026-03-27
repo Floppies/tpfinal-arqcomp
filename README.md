@@ -67,9 +67,9 @@ Todas estas instrucciones estas especificadas en el ISA del MIPS.
 ### Riesgos
 
 El procesador debe tener soporte para los siguientes tipos:
-- Estructurales. Se producen cuando dos instrucciones tratan de utilizar el mismo recurso en el mismo ciclo.
-- De datos. Se intenta utilizar un dato antes de que esté preparado. Mantenimiento del orden estricto de lecturas y escrituras.
-- De control. Intentar tomar una decisión sobre una condición todavía no evaluada.
+- Estructurales: Se producen cuando dos instrucciones tratan de utilizar el mismo recurso en el mismo ciclo.
+- De datos: Se intenta utilizar un dato antes de que esté preparado. Mantenimiento del orden estricto de lecturas y escrituras.
+- De control: Intentar tomar una decisión sobre una condición todavía no evaluada.
 
 Para dar soporte a los riesgos nombrados se debe implementar las dos unidades riesgos:
 - Unidad de Cortocircuitos (Forwarding Unit)
@@ -78,28 +78,28 @@ Para dar soporte a los riesgos nombrados se debe implementar las dos unidades ri
 ### Debug Unit
 
 Se debe simular una unidad de Debug que envíe información hacia y desde el procesador mediante UART. Se debe enviar a través de la UART:
+- Registros de las etapas del RISC-V
 - Contenido de los 32 registros
-- PC
-- Contenido de la memoria de datos usada
-- Cantidad de ciclos de clock desde el inicio
+- Contenido de la memoria de datos (cuyo largo debe ser determinado de antemano)
 
 El funcionamiento de la Debug Unit consiste en:
 - Antes de estar disponible para ejecutar, el procesador está a la espera para recibir un programa mediante la Debug Unit.
 - Una vez cargado el programa, debe permitir **dos modos de operación**:
-    - Continuo: Se envía un comando a la FPGA por la UART y esta inicia la ejecución del programa hasta llegar al final del mismo (Instrucción HALT). Llegado ese punto se muestran todos los valores indicados en pantalla.
-    - Paso a paso: Enviando un comando por la UART se ejecuta un ciclo de Clock. Se debe mostrar a cada paso los valores indicados.
+    - **Continuo:** Se envía un comando a la FPGA por la UART y esta inicia la ejecución del programa hasta llegar al final del mismo (Instrucción HALT). Llegado ese punto se muestran todos los valores indicados en pantalla.
+    - **Paso a paso:** Enviando un comando por la UART se ejecuta un ciclo de Clock. Se debe mostrar a cada paso los valores indicados.
 
 ### Otros Requerimientos
 
 - El programa a ejecutar debe ser cargado en la memoria de programa mediante un archivo ensamblado.
-- Debe implementarse un programa ensamblador que convierte código assembler de MIPS a codigo de instruccion.
+- Debe implementarse un programa ensamblador que convierte código assembler de RISC-V a codigo de instruccion.
 - Debe transmitirse ese programa mediante interfaz UART antes de comenzar a ejecutar.
 
-## Diseño del MIPS
+## Diseño del RISC-V
 
 El diseño del pipeline final con las cinco etapas es el siguiente:
 
-<img src="imagenes/MIPS_Diagram.jpg" alt="Diagrama MIPS" width="800"/>
+<img src="imagenes/RISCV_diagram.jpg" alt="Diagrama RISC-V" width="900"/>
+
 
 En este diseño estan contempladas todas las instrucciones requeridas y se han resuelto todos los riesgos.
 
@@ -111,79 +111,188 @@ En el pipeline se encuentran varios registros y multiplexores para poder llevar 
 
 Los registros IF/ID, ID/EX, EX/MEM y MEM/WB sirven para guardar todos los datos que se necesitan guardar en cada ciclo para pasar de una etapa a otra. Estos llevan la informacion de control y ciertos datos cruciales para el funcionamientos del MIPS.
 
-<img src="imagenes/EX_MEM_module.JPG" alt="Ejemplo de modulo de registros de etapa" width="800"/>
+<img src="imagenes/idexreg.png" alt="Ejemplo de modulo de registros de etapa" width="400"/>
 
 #### Unidad de Control (Control Unit)
 
 En esta unidad se decodifica la instruccion. Consiste de una series de señales que actuan como flags y que manejan el control de todas las instrucciones.
 
-<img src="imagenes/Control_Unit.PNG" alt="Modulo Control Unit" width="800"/>
+<img src="imagenes/control_unit.PNG" alt="Modulo Control Unit" width="300"/>
 
 Las señales de control significan lo siguiente:
-- Halt: Bandera que señala que llego una instrucción HALT por ende el procesador se tiene que detener cuando ésta llegue a la última etapa.
-- SizeControl: Es una señal de 5 bits que controla las funciones Store y Load en la memoria de datos.
+- **Halt_flag**: Bandera que señala que llego una instrucción HALT por ende el procesador se tiene que detener cuando ésta llegue a la última etapa.
+- **BNE_flag**: Bandera que levanta una instrucción BNE (Branch Not Equal).
+- **BEQ_flag**: Bandera que levanta una instrucción BEQ (Branch Equal).
+- **Jump_flag**: Bandera que levanta una instrucción de salto incondicional.
+- **Jump_reg**: Indica si el salto es hacia un registro (caso JARL).
+- **Link_flag**: Bandera que señaliza que hay que guardar el PC actual y hacer un salto. Es levantada por las instrucciones JAL y JALR.
+- **Reg_write**: Bandera que indica que se va a escribir en el banco de registros.
+- **Mem_to_Reg**: Bandera que indica que lo que se va a escribir en el banco de registros es un dato de la memoria o el resultado de la ALU.
+- **Mem_read**: Bandera que indica que se va a leer la memoria de datos.
+- **Mem_write**: Bandera que indica que se va a escribir en la memoria de datos.
+- **ALU_source**: Bandera que indica si un operando de la ALU va a ser el immediate o un registro.
+- **ALU_op**: Señal de 2 bits que completa la información que necesita el controlador de la ALU para poder saber que operación tiene que realizar la ALU.
 
-<img src="imagenes/Size_control.jpg" alt="Funcionamientos SizeControl" width="200"/>
+Estas señales se setean dependiendo de `i_opcode` que es igual a {funct3,opcode}, que son partes de la instruccion. La tabla de control es la siguiente:
 
-- BNE: Bandera que levanta una instrucción BNE (Branch Not Equal).
-- BEQ: Bandera que levanta una instrucción BEQ (Branch Equal).
-- JumpI: Bandera que levanta una instrucción de salto incondicional.
-- SelectAddr: Señal de 2 bits que elige la direccipon del salto ya sea el contenido de un registro, un jump target address o una branch address.
-- Link: Bandera que señaliza que hay que guardar el PC actual y hacer un salto. Es levantada por las instrucciones JAL y JALR.
-- RegWrite: Bandera que indica que se va a escribir en el banco de registros.
-- MemtoReg: Bandera que indica que lo que se va a escribir en el banco de registros es un dato de la memoria o el resultado de la ALU.
-- MemRead: Bandera que indica que se va a leer la memoria de datos.
-- MemWrite: Bandera que indica que se va a escribir en la memoria de datos.
-- ALUSrc: Bandera que indica si un operando de la ALU va a ser el immediate o un registro.
-- ALUOp: Señal de 3 bits que completa la información que necesita el controlador de la ALU para poder saber que operación tiene que realizar la ALU.
-- RegDst: Señal de 2 bits que indica cuál será el registro de destino: el rd, el rt o el registro 31 (para la instruccion JAL y JARL).
+| Instrucción / Tipo        | RegWrite | MemRead | MemWrite | ALUSrc | Branch | Jump | JumpReg | Link | ALUOp |
+|--------------------------|----------|---------|----------|--------|--------|------|---------|------|-------|
+| R-type (ADD, SUB, AND…)  |    1     |    0    |    0     |   0    |   0    |  0   |    0    |  0   |  10   |
+| I-type ALU (ADDI, ANDI…) |    1     |    0    |    0     |   1    |   0    |  0   |    0    |  0   |  10   |
+| Load (LB, LH, LW…)       |    1     |    1    |    0     |   1    |   0    |  0   |    0    |  0   |  00   |
+| Store (SB, SH, SW)       |    0     |    0    |    1     |   1    |   0    |  0   |    0    |  0   |  00   |
+| Branch (BEQ, BNE)        |    0     |    0    |    0     |   0    |   1    |  0   |    0    |  0   |  01   |
+| J (pseudo = JAL x0)      |    0     |    0    |    0     |   X    |   0    |  1   |    0    |  0   |  XX   |
+| JAL                      |    1     |    0    |    0     |   X    |   0    |  1   |    0    |  1   |  XX   |
+| JR (pseudo = JALR x0)    |    0     |    0    |    0     |   1    |   0    |  0   |    1    |  0   |  XX   |
+| JALR                     |    1     |    0    |    0     |   1    |   0    |  0   |    1    |  1   |  00   |
+| LUI                      |    1     |    0    |    0     |   1    |   0    |  0   |    0    |  0   |  11   |
 
-Dependiendo la instrucción se setean de manera diferente. Un ejemplo sería el siguiente:
+#### ALU control
 
-ACA INSERTAR UNA TABLA O UNA IMAGEN CON LAS SEÑALES DE CONTROL
+<img src="imagenes/alu_control.PNG" alt="Modulo Forwarding Unit" width="400"/>
+
+Esta unidad recibe como entradas a:
+- `ALU_op` que proviene de la unidad de control.
+- `i_funct` que es `funct7[5], funct3` de la instruccion.
+
+La tabla de verdad es la siguiente:
+| ALU_op | i_funct[3] (funct7) | i_funct[2:0] (funct3) | ALU_control | Operación | Instrucciones típicas |
+|--------|----------------------|------------------------|-------------|-----------|------------------------|
+| `00`   | `x`                  | `xxx`                  | `0000`      | `ADD`     | `load`, `store`, `auipc`, `jalr` |
+| `01`   | `x`                  | `xxx`                  | `0001`      | `SUB`     | comparación de branches |
+| `10`   | `0`                  | `000`                  | `0000`      | `ADD`     | `add`, `addi` |
+| `10`   | `1`                  | `000`                  | `0001`      | `SUB`     | `sub` |
+| `10`   | `x`                  | `001`                  | `1000`      | `SLL`     | `sll`, `slli` |
+| `10`   | `x`                  | `010`                  | `0110`      | `SLT`     | `slt`, `slti` |
+| `10`   | `x`                  | `011`                  | `0111`      | `SLTU`    | `sltu`, `sltiu` |
+| `10`   | `x`                  | `100`                  | `0100`      | `XOR`     | `xor`, `xori` |
+| `10`   | `0`                  | `101`                  | `1001`      | `SRL`     | `srl`, `srli` |
+| `10`   | `1`                  | `101`                  | `1010`      | `SRA`     | `sra`, `srai` |
+| `10`   | `x`                  | `110`                  | `0011`      | `OR`      | `or`, `ori` |
+| `10`   | `x`                  | `111`                  | `0010`      | `AND`     | `and`, `andi` |
+| `11`   | `x`                  | `xxx`                  | `1011`      | `LUI`     | `lui` |
+
 
 #### Unidad de Cortocircuito (Forwarding Unit)
 
-Esta unidad controla los datos que van a ser los operandos de la instrucción que se encuentra en la etapa ID. Sirve para eliminar los reisgos RAW que se generan a utilizar un procesador segmentado.
+Esta unidad controla los datos que van a ser los operandos de la instrucción que se encuentra en la etapa ID. Sirve para eliminar los riesgos RAW que se generan a utilizar un procesador segmentado.
 
-<img src="imagenes/Forwarding_unit.PNG" alt="Modulo Forwarding Unit" width="400"/>
+<img src="imagenes/forwarding_unit.PNG" alt="Modulo Forwarding Unit" width="400"/>
 
-Dependiendo de ciertas señales de control, las salidas de esta unidad son selectores de multiplexores que eligen cuales seran los Rs y Rt. Las opciones son los registros que salen del banco, los datos de la etapa EX, MEM o WB. La lógica es la siguiente:
-
-ACA INSERTAR LA TABLA DE DECISIONES
+Dependiendo de ciertas señales de control, las salidas de esta unidad son selectores de multiplexores que eligen cuales seran los Rsx. Las opciones son los registros que salen del banco, los datos de la etapa EX, MEM o WB. La lógica para rs1 es la siguiente:
+``` verilog
+//  Forwarding rs1 for EX Stage or for JARL
+    always  @(*)
+    begin
+        //  Forwarding from MEM Stage
+        if ((EX_MEM_regwrite)&&(EX_MEM_rd == ID_EX_rs1))
+            fwdA_tmp    =   MEMSTG  ;
+        //  Forwarding from WB Stage
+        else if ((MEM_WB_regwrite)&&(MEM_WB_rd == ID_EX_rs1))
+            fwdA_tmp    =   WBSTG   ;
+        //  No forwarding
+        else
+            fwdA_tmp    =   REGBNK  ;
+    end
+```
+El multiplexor a la entrada de la ALU depende de un selector conectado a una de las salidas de la unidad de cortocircuito y su comportamiento es el siguiente:
+``` verilog
+always  @(*)
+    begin
+        case(sel_addr)
+            ALUSTG      :   forw_tmp    =   alustg_data ;
+            MEMSTG      :   forw_tmp    =   memstg_data ;
+            WBSTG       :   forw_tmp    =   wbstg_data  ;
+            default     :   forw_tmp    =   32'hFFFFFFFF;
+        endcase
+    end
+            
+    assign  mux_forw    =   forw_tmp    ;
+```
 
 #### Hazard Detection Unit
 
 Esta unidad controla la inserción de "burbujas" para evitar riesgos RAW que surgen por las instrucciones LOAD.
 
-<img src="imagenes/Hazard_detection_unit.PNG" alt="Modulo Hazard Detection Unit" width="400"/>
+<img src="imagenes/hdu.PNG" alt="Modulo Hazard Detection Unit" width="400"/>
 
  Mientras no se detecte ningún riesgo, el procesador funciona normalmente (writePC = 1). Cuando hay que esperar que se cargue un dato, se inserta la burbuja. Es decir que el PC no se actualiza al igual que todos los registros de IF/ID y los registros de ID/EX se cargan con 0s (burbuja).
 
 ``` v
     always  @(*)
-        begin
-            if((ID_EX_memread)&&((ID_EX_rd == IF_ID_rs)|| (ID_EX_rd == IF_ID_rt)))
-            begin
-                write_pc    =   0   ;
-                stall_ID    =   1   ;
-                nop_EX      =   1   ;
-            end
-            else
-            begin
-                write_pc    =   1   ;
-                stall_ID    =   0   ;
-                nop_EX      =   0   ;
-            end
+    begin
+        write_pc    =   1   ;
+        IFID_write  =   1   ;
+        IDEX_flush  =   0   ;
+        IFID_flush  =   0   ;
+
+        // On redirect, kill both younger instructions:
+        // - IF/ID holds the instruction in decode
+        // - ID/EX would otherwise latch that wrong-path instruction into EX
+        IFID_flush  = redirect_ifid & (~stall)   ;
+        IDEX_flush  = redirect_idex & (~stall)   ;
+
+        // Stall has priority over redirect
+        if (stall) begin
+            write_pc    =   0   ;   //freeze PC
+            IFID_write  =   0   ;   // freeze IF/ID
+            IDEX_flush  =   1   ;   // bubble into EX (zero out control bits in ID/EX)
+            IFID_flush  =   0   ;   // keep current ID instruction (do not kill it)
         end
+    end
 ```
+- `redirect_ifid` es 1 cuando hay algun salto condicional o incondicional detectado en id.
+- `redirect_idex` sucede cuando hay un salto condicional o cuando hay una bandera de salto incondicional en EX. Esto se debe a cuando hay un redirect por JARL.
 
 #### Módulos con modificaciones especiales para ciertas instrucciones
 
 - Para las instrucciones JAL y JARL se agrega el flag Link que sirve para que en vez de tomar el immediate como segundo opoerando de la ALU se tome la siguiente instrucción y esta direccion se la que se guarde en el registro 31 (el último registro del banco).
-- Para manejar los loads y stores con tamaños diferentes se agrega una entrada de Size Control a la memoria que permite guardar y cargar datos con tamaños de WORD, HALFWORD y BYTE.
-- La señal que permite actualizar el registro del Program Counter tiene la lógica de solo ser 1 cuando no hay una señal activa de HALT y la Unidad de Detección de Riesgos permite que se actualiza el PC.
+- Para manejar los loads y stores con tamaños diferentes se utiliza funct3 de las instrucciones que es llevada a traves del pipeline hasta la MEM stage. Esto permite guardar y cargar datos con tamaños de WORD, HALFWORD y BYTE y signed y unsigned.
+- Para controlar el halt del pipeline cuyo requerimiento es que la instruccion del HALT llegue hasta la ultima etapa, el pipeline se detenga (`write_pc = 0`) y el pipeline quede con todos sus registros de etapa en 0, se agrego un registro llamada `halt_in_pipe`. La logica para conseguir este comportamiento es la siguiente:
+``` v
+// Latch: once HALT is in ID, stop fetching new instructions
+    always @(posedge i_clk or posedge i_rst)
+    begin
+        if (i_rst)
+        begin
+            halt_in_pipe    <=  1'b0    ;
+        end
+        // Ignore HALT instructions that are being flushed due to a redirect.
+        else if (cpu_en & ID_halt & ~IF_ID_flush)
+        begin
+            halt_in_pipe    <=  1'b1    ;
+        end
+    end
 
+    // Pipeline empty: assert one cycle after WB_halt deasserts
+    always @(posedge i_clk or posedge i_rst)
+    begin
+        if (i_rst)
+        begin
+            wb_halt_d   <=  1'b0    ;
+            pipe_empty  <=  1'b0    ;
+        end
+        else
+        begin
+            wb_halt_d   <=  WB_halt ;
+            if (wb_halt_d && ~WB_halt)
+                pipe_empty  <=  1'b1    ;
+        end
+    end
+```
+- Para controlar la carga de registros en el banco de registros se utiliza un multiplexor con un selector `i_sel = {WB_link, WB_memtoreg}` y tiene el siguiente comportamiento:
+```v
+always  @(*)
+    begin
+        case(i_sel)
+            ALU     :   data_tmp    =   i_aluresult ;
+            MEMDATA :   data_tmp    =   i_wbstgdata ;
+            LINK    :   data_tmp    =   i_nextinst  ;
+            default :   data_tmp    =   32'hFFFFFFFF;
+        endcase
+    end
+```
 ### Solución de Riesgos
 
 #### Riesgos RAW (LDE)
