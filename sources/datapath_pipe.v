@@ -118,13 +118,15 @@ module datapath_pipe    #(
                             MEM_data_from_mem   ;
     wire    [RBITS-1:0]     MEM_rd              ;
     wire    [2:0]           MEM_sizecontrol     ;
-    wire                    MEM_re              ;
+    wire                    MEM_re              ,
+                            use_dbg_dmem        ;
 
     assign  o_MEM_result    =   MEM_result      ;
     assign  o_MEM_data      =   MEM_data        ;
     assign  o_MEM_rd        =   MEM_rd          ;
-    assign  MEM_re          =   debug_mode  ?   dbg_dmem_re     :   MEM_memread ;
-    assign  MEM_addr        =   debug_mode  ?   dbg_dmem_addr   :   MEM_result  ;
+    assign  use_dbg_dmem    =   debug_mode & ~cpu_en;
+    assign  MEM_re          =   use_dbg_dmem ?   dbg_dmem_re     :   MEM_memread ;
+    assign  MEM_addr        =   use_dbg_dmem ?   dbg_dmem_addr   :   MEM_result  ;
     assign  dbg_dmem_data   =   MEM_data        ;
 
 
